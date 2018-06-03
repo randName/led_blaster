@@ -1,14 +1,13 @@
 LED_HEADER = bytes((0xFF, 0xFF))
 
 
-class ArduinoException(Exception):
-    pass
-
-
 class Arduino:
 
     def __init__(self, device, baud=400000, tout=1):
         from serial import Serial
+
+        self.leds = None
+        self.layout = None
 
         self.port = device
         self.serial = Serial(port=device, baudrate=baud, timeout=tout)
@@ -17,12 +16,18 @@ class Arduino:
         try:
             self.board_id = ord(self.read(1))
         except TypeError:
-            raise ArduinoException('No ID from %s' % device)
+            print('no id from %s' % device)
+            self.board_id = None
+            return
 
-        while self.read(1) != b'\x1f':
-            pass
+        try:
+            layout = ord(self.read(1))
+        except TypeError:
+            print('no layout from %s' % device)
+            return
 
-        self.leds = None
+        if self.id != layout:
+            print('mismatch on %s (%s, %s)' % (device, self.id, layout))
 
     @property
     def id(self):
@@ -45,7 +50,6 @@ class Arduino:
 
     def show(self):
         self.write(LED_HEADER)
-        self.write(len(self.leds).to_bytes(2, 'little'))
         self.write(bytes(min(0xFE, b) for b in self.leds.raw))
 
     def __str__(self):

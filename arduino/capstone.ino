@@ -2,28 +2,28 @@
 #include "capstone.h"
 #include "layout.h"
 
+const int ll = LED_LENGTH;
+
+byte get_board_no() {
+    return 0x00; // for now
+    const unsigned int raw_id = analogRead(ID_PIN);
+    return raw_id >> 4;
+}
+
 void setup() {
-    const byte board_no = 0x01;
+    const byte board_no = get_board_no();
 
     Serial.begin(SERIAL_BAUD);
     Serial.write(board_no);
+    Serial.write(BOARD_LAYOUT);
 
     configure(leds);
-
-    while (Serial.available()){ Serial.read(); }
-    Serial.write(SETUP_READY);
 }
-
-union len_conv {
-    byte raw[2];
-    int value;
-};
 
 void loop()
 {
     static bool h;
-    static int ll, rb;
-    static len_conv len;
+    static int rb;
 
     while (true) {
         h = false;
@@ -34,11 +34,7 @@ void loop()
         }
 
         if (h) {
-            while (Serial.available() < 2);
-            len.raw[0] = Serial.read();
-            len.raw[1] = Serial.read();
-            ll = len.value * 3;
-
+            while (!Serial.available());
             rb = 0;
             while (rb < ll) {
                 rb += Serial.readBytes(((char*)leds) + rb, ll - rb);
