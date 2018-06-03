@@ -3,12 +3,12 @@
 #include "layout.h"
 
 void setup() {
-    configure(leds);
-
     const byte board_no = 0x01;
 
     Serial.begin(SERIAL_BAUD);
     Serial.write(board_no);
+
+    configure(leds);
 
     while (Serial.available()){ Serial.read(); }
     Serial.write(SETUP_READY);
