@@ -2,11 +2,12 @@
 cd $(dirname "$(readlink -f "$0")")
 
 for layout in *.txt; do
-    fol="output/${layout//.*}"
+    lay="${layout//.*}"
+    fol="output/${lay}"
     fn="${fol}/layout.h"
     mkdir -p $fol
 
-    echo "// generate_layouts.sh" > $fn
+    echo "// generated layout ${lay}" > $fn
     echo "void configure(struct CRGB *leds) {" >> $fn
 
     ofs=0
@@ -18,4 +19,5 @@ for layout in *.txt; do
     done >> $fn
 
     echo "}" >> $fn
+    echo "  generated layout ${lay} (strips: $(wc -l < $layout))"
 done
