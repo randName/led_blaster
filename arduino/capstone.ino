@@ -2,7 +2,7 @@
 #include "capstone.h"
 #include "layout.h"
 
-const int ll = LED_LENGTH;
+const int ll = LED_LENGTH * 3;
 
 byte get_board_no() {
     return 0x00; // for now
