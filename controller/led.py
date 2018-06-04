@@ -40,7 +40,7 @@ class LED:
 
     @property
     def r(self):
-        return self._r / 256
+        return ord(self._r) / 255
 
     @r.setter
     def r(self, v):
@@ -48,7 +48,7 @@ class LED:
 
     @property
     def g(self):
-        return self._g / 256
+        return ord(self._g) / 255
 
     @g.setter
     def g(self, v):
@@ -56,7 +56,7 @@ class LED:
 
     @property
     def b(self):
-        return self._b / 256
+        return ord(self._b) / 255
 
     @b.setter
     def b(self, v):
@@ -122,11 +122,11 @@ class LED:
             self._h = 0
             return
 
-        if M[0] == 0:
+        if m_i == 0:
             hp = (self.g - self.b)/c
-        elif M[0] == 1:
+        elif m_i == 1:
             hp = (self.b - self.r)/c + 2
-        elif M[0] == 2:
+        elif m_i == 2:
             hp = (self.r - self.g)/c + 4
 
         self._h = hp / 6
@@ -168,18 +168,8 @@ class LED:
         self.g = m + g
         self.b = m + b
 
+    def __str__(self):
+        return '0x%s' % b''.join((self._r, self._g, self._b)).hex()
 
-class LEDs:
-
-    def __init__(self, length):
-        self.leds = tuple(LED() for i in range(length))
-
-    @property
-    def raw(self):
-        return b''.join(l.raw for l in self.leds)
-
-    def __getitem__(self, i):
-        return self.leds[i]
-
-    def __len__(self):
-        return len(self.leds)
+    def __repr__(self):
+        return '<LED at %s>' % hex(id(self))

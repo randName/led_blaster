@@ -1,4 +1,4 @@
-from controller.led import LEDs
+from controller.led import LED
 from controller.arduino import Arduino, arduino_devices
 
 
@@ -25,7 +25,7 @@ def get_layouts(lay_dir='layouts', lay_ext='.txt'):
 def test_arduino(a, cycles=1000, update=None):
     from time import time
 
-    a.leds = LEDs(sum(a.layout))
+    a.leds = tuple(LED() for i in range(sum(a.layout)))
     num_leds = len(a.leds)
 
     print('%d LEDs: ' % num_leds, end='')

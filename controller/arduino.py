@@ -49,8 +49,9 @@ class Arduino:
         self.serial.close()
 
     def show(self):
+        raw = b''.join(l.raw for l in self.leds)
         self.write(LED_HEADER)
-        self.write(bytes(min(0xFE, b) for b in self.leds.raw))
+        self.write(bytes(min(0xFE, b) for b in raw))
 
     def __str__(self):
         return 'Arduino #%03d' % self.id
