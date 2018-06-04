@@ -6,6 +6,8 @@ Stuff to interface lots of Arduinos
 - [PySerial](https://github.com/pyserial/pyserial) (py3k)
 - [FastLED](https://github.com/FastLED/FastLED)
 
-`sudo apt-get install arduino-mk python3-serial`
+`sudo apt-get install arduino-mk`
 
 `git clone https://github.com/FastLED/FastLED ~/sketchbook/libraries/FastLED`
+
+`pipenv install`
