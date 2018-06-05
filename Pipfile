@@ -8,6 +8,7 @@ python_version = "3.5"
 
 [packages]
 pyserial = "*"
+redis = "*"
 
 [dev-packages]
 "flake8" = "*"
