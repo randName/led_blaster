@@ -6,7 +6,7 @@ from .arduino import Arduino, arduino_devices
 def setup(arduinos):
     layouts = get_layouts()
     slices = get_slices(layouts)
-    leds = LEDs(sum(sum(l) for l in layouts.values()))
+    leds = LEDs(sum(sum(l for l in layouts[s]) for s in slices))
 
     for port in arduino_devices():
         a = Arduino(port)
@@ -20,10 +20,17 @@ def setup(arduinos):
     arduinos.sort(key=lambda a: a.id)
 
 
-def loop(arduinos):
+def loop(arduinos, fps=12):
+    from time import time
     try:
+        interval = 1/fps
+        last = time()
         while True:
-            pass
+            now = time()
+            if (now - last) >= interval:
+                for a in arduinos:
+                    a.show()
+                last = now
     except KeyboardInterrupt:
         print('\nKeyboard interrupt received, exiting.')
     finally:

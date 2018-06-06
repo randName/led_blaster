@@ -8,6 +8,7 @@ class Arduino:
 
         self.leds = None
         self.layout = None
+        self.slice = None
 
         self.port = device
         self.serial = Serial(port=device, baudrate=baud, timeout=tout)
@@ -49,7 +50,7 @@ class Arduino:
         self.serial.close()
 
     def show(self):
-        raw = b''.join(l.raw for l in self.leds)
+        raw = self.leds[slice(*self.slice)]
         self.write(LED_HEADER)
         self.write(bytes(min(0xFE, b) for b in raw))
 

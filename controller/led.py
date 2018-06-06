@@ -173,3 +173,49 @@ class LED:
 
     def __repr__(self):
         return '<LED at %s>' % hex(id(self))
+
+
+class LEDs:
+
+    def __init__(self, size=1, key='led_store', **kw):
+        from redis import StrictRedis
+        self.redis = StrictRedis(**kw)
+
+        self.key = key
+        self.size = size
+        self.redis.delete(key)
+        self.redis.setrange(key, 0, bytes(size * 3))
+
+    def _handle_index(self, i):
+        if not isinstance(i, int):
+            raise TypeError
+        if i < 0:
+            i += self.size
+        if i < 0 or i >= self.size:
+            raise IndexError
+        return i * 3, i * 3 + 2
+
+    def _handle_item(self, i):
+        try:
+            start, _ = self._handle_index(i.start or 0)
+            _, end = self._handle_index((i.stop or self.size) - 1)
+        except AttributeError:
+            start, end = self._handle_index(i)
+        return start, end
+
+    def __len__(self):
+        return self.size
+
+    def __getitem__(self, i):
+        start, end = self._handle_item(i)
+        return self.redis.getrange(self.key, start, end)
+
+    def __setitem__(self, i, v):
+        start, end = self._handle_item(i)
+        self.redis.setrange(self.key, start, v)
+
+    def __str__(self):
+        return '%d LEDs' % self.size
+
+    def __repr__(self):
+        return '<LEDs at %s>' % hex(id(self))
