@@ -1,6 +1,8 @@
 #!/bin/sh
 cd $(dirname "$(readlink -f "$0")")
 
+chip="UCS1903B"
+
 for layout in *.txt; do
     lay="$(echo $layout | cut -d. -f1)"
     fol="output/${lay}"
@@ -14,7 +16,7 @@ for layout in *.txt; do
     ofs=0
     pin=2
     for len in $(cat $layout); do
-        echo "    FastLED.addLeds<NEOPIXEL, ${pin}>(leds, ${ofs}, ${len});"
+        echo "    FastLED.addLeds<${chip}, ${pin}>(leds, ${ofs}, ${len});"
         ofs=$(expr $ofs + $len)
         pin=$(expr $pin + 1)
     done >> $fn
