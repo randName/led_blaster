@@ -4,7 +4,6 @@
 #include <unistd.h>
 
 #include <GLES2/gl2.h>
-#include "screen.h"
 
 #define NUM_INDICES 6 * sizeof(GLushort)
 #define NUM_VERTICES 18 * sizeof(GLfloat)
@@ -19,9 +18,10 @@ class Canvas {
 public:
 	Canvas();
 	virtual ~Canvas();
-	void init(Screen * screen);
+	void init(int width, int height);
 	bool load(const char * frag_path);
 	void use() const;
+	void read();
 	void update();
 
 	const double t() const { return m_t; }
@@ -30,14 +30,13 @@ public:
 	const unsigned int size() const { return m_bufsize; }
 	const unsigned char * buffer() const { return m_buffer; }
 private:
-	Screen * m_screen;
-
 	struct tm * m_d;
 	struct timespec m_timestart;
 
 	double m_t = 0.0f;
 	double m_dt = 0.0f;
 	double m_fps = 0.0f;
+	bool m_read = false;
 	unsigned int m_width;
 	unsigned int m_height;
 	unsigned int m_bufsize;

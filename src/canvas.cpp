@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "canvas.h"
 #include "fs.h"
 
@@ -13,10 +15,9 @@ Canvas::~Canvas() {
 	free(m_buffer);
 }
 
-void Canvas::init(Screen * screen) {
-	m_screen = screen;
-	m_width = m_screen->width();
-	m_height = m_screen->height();
+void Canvas::init(int width, int height) {
+	m_width = width;
+	m_height = height;
 	m_bufsize = m_width * m_height * 3;
 
 	unsigned char* tmp = NULL;
@@ -91,10 +92,13 @@ void Canvas::update() {
 	set_uniform(U_LOC("u_date"),
 		m_d->tm_wday, m_d->tm_hour, m_d->tm_min, m_d->tm_sec);
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_vertexbuffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexbuffer);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-	glReadPixels(0, 0, m_width, m_height, GL_RGB, GL_UNSIGNED_BYTE, m_buffer);
+	if (m_read) {
+		glBindBuffer(GL_ARRAY_BUFFER, m_vertexbuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexbuffer);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+		glReadPixels(0, 0, m_width, m_height, GL_RGB, GL_UNSIGNED_BYTE, m_buffer);
+		m_read = false;
+	}
 
 	++frames;
 	fps_t += m_dt;
@@ -103,8 +107,10 @@ void Canvas::update() {
 		frames = 0;
 		fps_t = 0.0f;
 	}
+}
 
-	m_screen->render();
+void Canvas::read() {
+	m_read = true;
 }
 
 double Canvas::timenow() {

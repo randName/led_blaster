@@ -1,9 +1,9 @@
 #include <atomic>
-#include <thread>
 #include <iostream>
 
 #include <stdio.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "screen.h"
 #include "canvas.h"
@@ -11,7 +11,7 @@
 Screen screen;
 Canvas canvas;
 
-void prompt();
+void * prompt(void *);
 void print_screen();
 
 std::atomic<bool> running(true);
@@ -23,21 +23,22 @@ int main(int argc, const char **argv)
 	static char * frag_path = (char*)"test.frag";
 
 	screen.init(width, height);
-	canvas.init(&screen);
+	canvas.init(width, height);
 	canvas.load(frag_path);
 	canvas.use();
 
-	std::thread prompt_t(&prompt);
+	pthread_t prompt_t;
+	pthread_create(&prompt_t, NULL, prompt, NULL);
 
 	while (running.load()) {
 		canvas.update();
 	}
 
-	pthread_cancel(prompt_t.native_handle());
+	pthread_cancel(prompt_t);
 	exit(0);
 }
 
-void prompt() {
+void * prompt(void * a) {
 	std::string line;
 	printf("> ");
 	while (std::getline(std::cin, line)) {
@@ -56,11 +57,13 @@ void prompt() {
 			printf("\n> ");
 		}
 	}
+	return (void *)0;
 }
 
 void print_screen() {
 	static uint i, w = screen.width();
 	static const unsigned char* p = canvas.buffer();
+	canvas.read();
 
 	for (i = 0; i < canvas.size(); i+=3) {
 		printf("%02X%02X%02X ", p[i], p[i+1], p[i+2]);

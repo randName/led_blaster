@@ -22,9 +22,11 @@ Screen::Screen() {
 }
 
 Screen::~Screen() {
+	eglMakeCurrent(m_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 	eglDestroyContext(m_display, m_context);
 	eglDestroySurface(m_display, m_surface);
 	eglTerminate(m_display);
+	eglReleaseThread();
 }
 
 void Screen::init(unsigned int w, unsigned int h) {
