@@ -39,11 +39,11 @@ void Canvas::init(int width, int height) {
 
 	glGenBuffers(1, &m_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, NUM_VERTICES, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, SZ_VERTICES, vertices, GL_STATIC_DRAW);
 
 	glGenBuffers(1, &m_indexbuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexbuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, NUM_INDICES, indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, SZ_INDICES, indices, GL_STATIC_DRAW);
 
 	clock_gettime(CLOCK_MONOTONIC, &m_timestart);
 }
@@ -72,17 +72,25 @@ void Canvas::use() const {
 
 	GLint _l = glGetAttribLocation(m_program, "p");
 	glEnableVertexAttribArray(_l);
-	glVertexAttribPointer(_l, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (void*)0);
+	glVertexAttribPointer(_l, 3, GL_FLOAT, GL_FALSE, SZ_TRIANGLE, (void*)0);
 }
 
 void Canvas::update() {
 	static double now;
 	static int frames = 0;
 	static double fps_t = 0.0f;
+	static double last_frame = 0.0f;
+
+	now = timenow();
+
+	if (now - last_frame < WAIT_FRAME) {
+		return;
+	}
+
+	last_frame = now;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	now = timenow();
 	m_dt = now - m_t;
 	m_t = now;
 
@@ -92,13 +100,8 @@ void Canvas::update() {
 	set_uniform(U_LOC("u_date"),
 		m_d->tm_wday, m_d->tm_hour, m_d->tm_min, m_d->tm_sec);
 
-	if (m_read) {
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertexbuffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexbuffer);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-		glReadPixels(0, 0, m_width, m_height, GL_RGB, GL_UNSIGNED_BYTE, m_buffer);
-		m_read = false;
-	}
+	glDrawElements(GL_TRIANGLES, NUM_INDICES, GL_UNSIGNED_SHORT, 0);
+	glReadPixels(0, 0, m_width, m_height, GL_RGB, GL_UNSIGNED_BYTE, m_buffer);
 
 	++frames;
 	fps_t += m_dt;
@@ -107,10 +110,6 @@ void Canvas::update() {
 		frames = 0;
 		fps_t = 0.0f;
 	}
-}
-
-void Canvas::read() {
-	m_read = true;
 }
 
 double Canvas::timenow() {

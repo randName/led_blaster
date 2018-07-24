@@ -5,11 +5,16 @@
 
 #include <GLES2/gl2.h>
 
-#define NUM_INDICES 6 * sizeof(GLushort)
-#define NUM_VERTICES 18 * sizeof(GLfloat)
+#define NUM_INDICES 6
+#define NUM_VERTICES 12
+#define SZ_TRIANGLE 3 * sizeof(GLfloat)
+#define SZ_INDICES NUM_INDICES * sizeof(GLushort)
+#define SZ_VERTICES NUM_VERTICES * sizeof(GLfloat)
 
-const GLushort indices[] = { 0, 1, 3, 0, 2, 3 };
-const GLfloat vertices[] = {
+#define WAIT_FRAME 0.0166f
+
+const GLushort indices[NUM_INDICES] = { 0, 1, 3, 0, 2, 3 };
+const GLfloat vertices[NUM_VERTICES] = {
 	-1.0f, -1.0f, 0.0f,	1.0f, -1.0f, 0.0f,
 	-1.0f,  1.0f, 0.0f,	1.0f,  1.0f, 0.0f,
 };
@@ -21,11 +26,9 @@ public:
 	void init(int width, int height);
 	bool load(const char * frag_path);
 	void use() const;
-	void read();
 	void update();
 
 	const double t() const { return m_t; }
-	const double dt() const { return m_dt; }
 	const double fps() const { return m_fps; }
 	const unsigned int size() const { return m_bufsize; }
 	const unsigned char * buffer() const { return m_buffer; }
@@ -36,7 +39,6 @@ private:
 	double m_t = 0.0f;
 	double m_dt = 0.0f;
 	double m_fps = 0.0f;
-	bool m_read = false;
 	unsigned int m_width;
 	unsigned int m_height;
 	unsigned int m_bufsize;

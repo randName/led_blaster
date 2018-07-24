@@ -79,7 +79,6 @@ void * prompt(void * a) {
 void print_screen() {
 	static uint i, w = screen.width();
 	static const unsigned char* p = canvas.buffer();
-	canvas.read();
 
 	for (i = 0; i < canvas.size(); i+=3) {
 		printf("%02X%02X%02X ", p[i], p[i+1], p[i+2]);
