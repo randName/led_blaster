@@ -1,8 +1,7 @@
 #include <atomic>
+#include <sstream>
 #include <iostream>
 
-#include <stdio.h>
-#include <unistd.h>
 #include <pthread.h>
 
 #include "screen.h"
@@ -10,6 +9,8 @@
 #include "tcpserver.h"
 
 std::atomic<bool> running(true);
+
+void halt() { running.store(false); }
 
 Screen screen;
 Canvas canvas;
@@ -29,14 +30,30 @@ Server<GLHandler> server;
 void * prompt(void *);
 void print_screen();
 
-
 int main(int argc, const char **argv)
 {
-	static uint width = 20;
-	static uint height = 15;
-	static char * frag_path = (char*)"test.frag";
+	int port = 8080;
+	int width = 256;
+	int height = 128;
+	char * frag_path = (char *)"default.frag";
 
-	server.init(8080);
+	int i;
+	std::string arg;
+
+	for ( i = 0; i < argc; ++i ) {
+		arg = std::string(argv[i]);
+		if ( arg == "-f" ) {
+			frag_path = (char *)argv[++i];
+		} else if ( arg == "-w" ) {
+			std::stringstream(argv[++i]) >> width;
+		} else if ( arg == "-h" ) {
+			std::stringstream(argv[++i]) >> height;
+		} else if ( arg == "-p" ) {
+			std::stringstream(argv[++i]) >> port;
+		}
+	}
+
+	server.init(port);
 	screen.init(width, height);
 	canvas.init(width, height);
 	canvas.load(frag_path);
@@ -55,11 +72,12 @@ int main(int argc, const char **argv)
 }
 
 void * prompt(void * a) {
-	std::string line;
+	static std::string line;
+
 	printf("> ");
 	while (std::getline(std::cin, line)) {
 		if (line == "q") {
-			running.store(false);
+			halt();
 		} else if (line == "fps") {
 			printf("%.2f", canvas.fps());
 		} else if (line == "t") {
