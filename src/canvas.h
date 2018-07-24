@@ -26,7 +26,7 @@ public:
 	void init(int width, int height);
 	bool load(const char * frag_path);
 	void use() const;
-	void update();
+	void update(const double);
 
 	const double t() const { return m_t; }
 	const double fps() const { return m_fps; }
@@ -34,7 +34,6 @@ public:
 	const unsigned char * buffer() const { return m_buffer; }
 private:
 	struct tm * m_d;
-	struct timespec m_timestart;
 
 	double m_t = 0.0f;
 	double m_dt = 0.0f;
@@ -50,7 +49,6 @@ private:
 	GLuint m_indexbuffer;
 	GLuint m_vertexbuffer;
 
-	double timenow();
 	bool compile(const char * frag_src);
 	void set_uniform(GLint loc, float _x) const;
 	void set_uniform(GLint loc, float _x, float _y) const;

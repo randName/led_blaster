@@ -44,8 +44,6 @@ void Canvas::init(int width, int height) {
 	glGenBuffers(1, &m_indexbuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexbuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, SZ_INDICES, indices, GL_STATIC_DRAW);
-
-	clock_gettime(CLOCK_MONOTONIC, &m_timestart);
 }
 
 bool Canvas::load(const char * frag_path) {
@@ -75,13 +73,11 @@ void Canvas::use() const {
 	glVertexAttribPointer(_l, 3, GL_FLOAT, GL_FALSE, SZ_TRIANGLE, (void*)0);
 }
 
-void Canvas::update() {
-	static double now;
+void Canvas::update(const double now) {
+	static time_t rt;
 	static int frames = 0;
 	static double fps_t = 0.0f;
 	static double last_frame = 0.0f;
-
-	now = timenow();
 
 	if (now - last_frame < WAIT_FRAME) {
 		return;
@@ -91,6 +87,8 @@ void Canvas::update() {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	time(&rt);
+	m_d = localtime(&rt);
 	m_dt = now - m_t;
 	m_t = now;
 
@@ -110,16 +108,6 @@ void Canvas::update() {
 		frames = 0;
 		fps_t = 0.0f;
 	}
-}
-
-double Canvas::timenow() {
-	static timespec now;
-	static time_t rt;
-	clock_gettime(CLOCK_MONOTONIC, &now);
-	time(&rt);
-	m_d = localtime(&rt);
-	return double(now.tv_nsec - m_timestart.tv_nsec)/1000000000.0
-		+ double(now.tv_sec - m_timestart.tv_sec);
 }
 
 void Canvas::set_uniform(GLint loc, float _x) const {

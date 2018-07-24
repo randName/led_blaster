@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 
+#include <time.h>
 #include <pthread.h>
 
 #include "screen.h"
@@ -28,7 +29,6 @@ private:
 Server<GLHandler> server;
 
 void * prompt(void *);
-void print_screen();
 
 int main(int argc, const char **argv)
 {
@@ -62,13 +62,21 @@ int main(int argc, const char **argv)
 	pthread_t prompt_t;
 	pthread_create(&prompt_t, NULL, prompt, NULL);
 
+	double now;
+	timespec ts_s, ts_n;
+	clock_gettime(CLOCK_MONOTONIC, &ts_s);
+
 	while (running.load()) {
-		canvas.update();
+		clock_gettime(CLOCK_MONOTONIC, &ts_n);
+		now = double(ts_n.tv_nsec - ts_s.tv_nsec)/1000000000.0;
+		now += double(ts_n.tv_sec - ts_s.tv_sec);
+
+		canvas.update(now);
 	}
 
 	server.stop();
 	pthread_cancel(prompt_t);
-	exit(0);
+	return 0;
 }
 
 void * prompt(void * a) {
@@ -82,8 +90,6 @@ void * prompt(void * a) {
 			printf("%.2f", canvas.fps());
 		} else if (line == "t") {
 			printf("%.2f", canvas.t());
-		} else if (line == "p") {
-			print_screen();
 		} else {
 			printf("???");
 		}
@@ -92,16 +98,4 @@ void * prompt(void * a) {
 		}
 	}
 	return (void *)0;
-}
-
-void print_screen() {
-	static uint i, w = screen.width();
-	static const unsigned char* p = canvas.buffer();
-
-	for (i = 0; i < canvas.size(); i+=3) {
-		printf("%02X%02X%02X ", p[i], p[i+1], p[i+2]);
-		if (((i/3) % w) == w - 1) {
-			printf("\n");
-		}
-	}
 }
