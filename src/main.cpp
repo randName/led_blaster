@@ -7,14 +7,28 @@
 
 #include "screen.h"
 #include "canvas.h"
+#include "tcpserver.h"
+
+std::atomic<bool> running(true);
 
 Screen screen;
 Canvas canvas;
 
+class GLHandler : ConnHandler {
+public:
+	GLHandler(int f, char *a) : ConnHandler(f, a) {}
+private:
+	int handle(const int len, const char *msg, char *reply) {
+		printf("\n%s - %.*s\n", m_addr.c_str(), len, msg);
+		return sprintf(reply, "FPS: %.3f\n", canvas.fps());
+	}
+};
+
+Server<GLHandler> server;
+
 void * prompt(void *);
 void print_screen();
 
-std::atomic<bool> running(true);
 
 int main(int argc, const char **argv)
 {
@@ -22,6 +36,7 @@ int main(int argc, const char **argv)
 	static uint height = 15;
 	static char * frag_path = (char*)"test.frag";
 
+	server.init(8080);
 	screen.init(width, height);
 	canvas.init(width, height);
 	canvas.load(frag_path);
@@ -34,6 +49,7 @@ int main(int argc, const char **argv)
 		canvas.update();
 	}
 
+	server.stop();
 	pthread_cancel(prompt_t);
 	exit(0);
 }
