@@ -1,7 +1,13 @@
 #include "FastLED.h"
-#include "capstone.h"
 #include "layout.h"
 
+#define SERIAL_BAUD 500000
+#define BOARD_READY 0xFF
+#define NUM_LEDS 512
+
+#define ID_PIN A0
+
+CRGB leds[NUM_LEDS];
 const int ll = LED_LENGTH * 3;
 
 byte get_board_no() {
@@ -11,38 +17,28 @@ byte get_board_no() {
 }
 
 void setup() {
-    const byte board_no = get_board_no();
-
     Serial.begin(SERIAL_BAUD);
-    Serial.write(board_no);
+    Serial.write(get_board_no());
     Serial.write(BOARD_LAYOUT);
 
     configure(leds);
+
+    for (unsigned int i = 0; i < LED_LENGTH; ++i) leds[i] = CRGB::Black;
+    FastLED.show();
+    delay(1000);
 }
 
 void loop()
 {
-    static bool h;
     static int rb;
 
-    while (true) {
-        h = false;
-        while (!Serial.available());
-        if (Serial.read() == 0xFF) {
-            while (!Serial.available());
-            if (Serial.read() == 0xFF){ h = true; }
-        }
+    Serial.write(BOARD_READY);
 
-        if (h) {
-            while (!Serial.available());
-            rb = 0;
-            while (rb < ll) {
-                rb += Serial.readBytes(((char*)leds) + rb, ll - rb);
-            }
-            break;
-        }
+    rb = 0;
+    while (!Serial.available());
+    while (rb < ll) {
+        rb += Serial.readBytes(((char*)leds) + rb, ll - rb);
     }
 
     FastLED.show();
-    while (Serial.available()){ Serial.read(); }
 }
