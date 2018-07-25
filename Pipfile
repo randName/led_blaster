@@ -3,12 +3,15 @@ url = "https://pypi.org/simple"
 name = "pypi"
 verify_ssl = true
 
+[[source]]
+url = "https://www.piwheels.org/simple"
+name = "piwheels"
+verify_ssl = true
+
 [requires]
 python_version = "3.5"
 
 [packages]
-pyserial = "*"
-redis = "*"
 
 [dev-packages]
 "flake8" = "*"
