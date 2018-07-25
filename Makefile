@@ -1,4 +1,7 @@
-.PHONY: layouts
+.PHONY: blaster layouts
 
-layouts: layouts/generate_layouts
-	layouts/generate_layouts
+blaster:
+	$(MAKE) -C blaster
+
+layouts:
+	$(MAKE) -C layouts

@@ -6,4 +6,4 @@ __pycache__/
 build-*/
 layouts/output/
 
-dump.rdb
+.o
