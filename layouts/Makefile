@@ -1,0 +1,2 @@
+all:
+	./generate_layouts
