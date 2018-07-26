@@ -14,7 +14,7 @@ for layout in *.txt; do
     echo "void configure(struct CRGB *leds) {" >> $fn
 
     ofs=0
-    pin=2
+    pin=4
     for len in $(cat $layout); do
         echo "    FastLED.addLeds<${chip}, ${pin}>(leds, ${ofs}, ${len});"
         ofs=$(expr $ofs + $len)
