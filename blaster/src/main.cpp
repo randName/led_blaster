@@ -2,30 +2,29 @@
 #include <sstream>
 #include <iostream>
 
-#include <time.h>
 #include <pthread.h>
 
+#include "timer.h"
 #include "screen.h"
 #include "canvas.h"
 #include "tcpserver.h"
 
 std::atomic<bool> running(true);
 
-void halt() { running.store(false); }
-
-Screen screen;
-Canvas canvas;
+int cli(std::string, char*);
 
 class GLHandler : ConnHandler {
 public:
 	GLHandler(int f, char *a) : ConnHandler(f, a) {}
 private:
 	int handle(const int len, const char *msg, char *reply) {
-		printf("\n%s - %.*s\n", m_addr.c_str(), len, msg);
-		return sprintf(reply, "FPS: %.3f\n", canvas.fps());
+		return cli(msg, reply);
 	}
 };
 
+Timer timer;
+Screen screen;
+Canvas canvas;
 Server<GLHandler> server;
 
 void * prompt(void *);
@@ -58,18 +57,15 @@ int main(int argc, const char **argv)
 	canvas.init(width, height);
 	canvas.load(frag_path);
 	canvas.use();
+	timer.start();
 
 	pthread_t prompt_t;
 	pthread_create(&prompt_t, NULL, prompt, NULL);
 
 	double now;
-	timespec ts_s, ts_n;
-	clock_gettime(CLOCK_MONOTONIC, &ts_s);
 
 	while (running.load()) {
-		clock_gettime(CLOCK_MONOTONIC, &ts_n);
-		now = double(ts_n.tv_nsec - ts_s.tv_nsec)/1000000000.0;
-		now += double(ts_n.tv_sec - ts_s.tv_sec);
+		now = timer.update();
 
 		canvas.update(now);
 	}
@@ -81,21 +77,58 @@ int main(int argc, const char **argv)
 
 void * prompt(void * a) {
 	static std::string line;
+	static char reply[256];
 
 	printf("> ");
 	while (std::getline(std::cin, line)) {
-		if (line == "q") {
-			halt();
-		} else if (line == "fps") {
-			printf("%.2f", canvas.fps());
-		} else if (line == "t") {
-			printf("%.2f", canvas.t());
-		} else {
-			printf("???");
-		}
+		cli(line, reply);
+		printf("%s", reply);
 		if (running.load()) {
 			printf("\n> ");
 		}
 	}
 	return (void *)0;
+}
+
+int cli(std::string line, char *reply) {
+	static int l_int;
+	static double l_double;
+
+	std::stringstream ss(line);
+	std::string cmd;
+	ss >> cmd;
+
+
+	if ( cmd == "q" ) {
+		running.store(false);
+		return sprintf(reply, "bye!\n");
+	}
+
+	if ( cmd == "fps" ) {
+		return sprintf(reply, "%.2f\n", canvas.fps());
+	}
+
+	if ( cmd == "t" ) {
+		if ( ss >> l_double ) {
+			timer.shift(l_double);
+		}
+		return sprintf(reply, "%.3f\n", timer.now());
+	}
+
+	if ( cmd == "p" ) {
+		unsigned int i = 0;
+		const unsigned char * p = canvas.buffer();
+		if ( ss >> l_int ) {
+			i = l_int * 3;
+			if ( i > canvas.size() ) {
+				i = 0;
+			}
+		}
+		return sprintf(reply, "#%02X%02X%02X\n", p[i], p[i+1], p[i+2]);
+	}
+
+	if ( cmd == "u" ) {
+	}
+
+	return sprintf(reply, "???\n");
 }
