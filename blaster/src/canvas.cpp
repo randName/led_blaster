@@ -64,6 +64,7 @@ bool Canvas::compile(const char * frag_src) {
 }
 
 void Canvas::use() const {
+	glDetachShader(m_frag, GL_FRAGMENT_SHADER);
 	glAttachShader(m_program, m_frag);
 	glLinkProgram(m_program);
 	glUseProgram(m_program);
@@ -92,10 +93,10 @@ void Canvas::update(const double now) {
 	m_dt = now - m_t;
 	m_t = now;
 
-	set_uniform(U_LOC("u_resolution"), m_width, m_height);
-	set_uniform(U_LOC("u_time"), m_t);
-	set_uniform(U_LOC("u_delta"), m_dt);
-	set_uniform(U_LOC("u_date"),
+	glUniform2f(U_LOC("u_resolution"), m_width, m_height);
+	glUniform1f(U_LOC("u_time"), m_t);
+	glUniform1f(U_LOC("u_delta"), m_dt);
+	glUniform4f(U_LOC("u_date"),
 		m_d->tm_wday, m_d->tm_hour, m_d->tm_min, m_d->tm_sec);
 
 	glDrawElements(GL_TRIANGLES, NUM_INDICES, GL_UNSIGNED_SHORT, 0);
@@ -108,24 +109,4 @@ void Canvas::update(const double now) {
 		frames = 0;
 		fps_t = 0.0f;
 	}
-}
-
-void Canvas::set_uniform(GLint loc, float _x) const {
-	if (loc == -1) { return; }
-	glUniform1f(loc, _x);
-}
-
-void Canvas::set_uniform(GLint loc, float _x, float _y) const {
-	if (loc == -1) { return; }
-	glUniform2f(loc, _x, _y);
-}
-
-void Canvas::set_uniform(GLint loc, float _x, float _y, float _z) const {
-	if (loc == -1) { return; }
-	glUniform3f(loc, _x, _y, _z);
-}
-
-void Canvas::set_uniform(GLint loc, float _x, float _y, float _z, float _w) const {
-	if (loc == -1) { return; }
-	glUniform4f(loc, _x, _y, _z, _w);
 }

@@ -50,8 +50,4 @@ private:
 	GLuint m_vertexbuffer;
 
 	bool compile(const char * frag_src);
-	void set_uniform(GLint loc, float _x) const;
-	void set_uniform(GLint loc, float _x, float _y) const;
-	void set_uniform(GLint loc, float _x, float _y, float _z) const;
-	void set_uniform(GLint loc, float _x, float _y, float _z, float _w) const;
 };
