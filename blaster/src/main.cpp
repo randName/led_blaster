@@ -92,6 +92,7 @@ void * prompt(void * a) {
 int cli(std::string line, char *reply) {
 	static int l_int;
 	static double l_double;
+	static unsigned int i = 0;
 
 	std::stringstream ss(line);
 	std::string cmd;
@@ -114,7 +115,6 @@ int cli(std::string line, char *reply) {
 	}
 
 	if ( cmd == "p" ) {
-		unsigned int i = 0;
 		const unsigned char * p = canvas.buffer();
 		if ( ss >> l_int ) {
 			i = l_int * 3;
@@ -126,6 +126,19 @@ int cli(std::string line, char *reply) {
 	}
 
 	if ( cmd == "u" ) {
+		float value[32];
+		if ( ss >> cmd ) {
+			i = 0;
+			while ( ss >> l_double ) {
+				value[i++] = (float)l_double;
+			}
+
+			if ( i > 0 ) {
+				l_int = line.find('.') == std::string::npos;
+				canvas.set_uniform(cmd, i, value, (bool)l_int);
+				return sprintf(reply, "%d\n", i);
+			}
+		}
 	}
 
 	return sprintf(reply, "???\n");

@@ -102,6 +102,8 @@ void Canvas::update(const double now) {
 	glUniform4f(U_LOC("u_date"),
 		m_d->tm_wday, m_d->tm_hour, m_d->tm_min, m_d->tm_sec);
 
+	uniforms();
+
 	glDrawElements(GL_TRIANGLES, NUM_INDICES, GL_UNSIGNED_SHORT, 0);
 	glReadPixels(0, 0, m_width, m_height, GL_RGB, GL_UNSIGNED_BYTE, m_buffer);
 
@@ -111,5 +113,92 @@ void Canvas::update(const double now) {
 		m_fps = (double)frames / fps_t;
 		frames = 0;
 		fps_t = 0.0f;
+	}
+}
+
+int Canvas::set_uniform(std::string name, size_t size, float * value, bool is_int) {
+	static unsigned int i;
+
+	if ( m_uniforms[name].value == NULL ) {
+		m_uniforms[name].value = new float[size];
+		m_uniforms[name].is_int = is_int;
+		m_uniforms[name].size = size;
+	} else if ( size != m_uniforms[name].size ) {
+		float *tmp = (float *)realloc(m_uniforms[name].value, size*sizeof(float));
+		if ( tmp != NULL ) {
+			m_uniforms[name].value = tmp;
+			m_uniforms[name].size = size;
+		}
+	}
+
+	for ( i = 0; i < m_uniforms[name].size; ++i ) {
+		m_uniforms[name].value[i] = *(value + i);
+	}
+
+	return 0;
+}
+
+void Canvas::uniforms() const {
+	static GLint loc;
+	static int * _i;
+	static const float * _f;
+	static unsigned int i, size;
+	static UniformMap::const_iterator itr;
+
+	for ( itr = m_uniforms.begin(); itr != m_uniforms.end(); ++itr ) {
+		loc = U_LOC(itr->first.c_str());
+
+		if ( loc == -1 ) {
+			continue;
+		}
+
+		_f = itr->second.value;
+		size = itr->second.size;
+
+		if ( itr->second.is_int ) {
+			_i = new int[size];
+
+			for ( i = 0; i < size; ++i ) {
+				_i[i] = (int)_f[i];
+			}
+
+			switch (size) {
+				case 1:
+					glUniform1i(loc, _i[0]);
+					break;
+				case 2:
+					glUniform2i(loc, _i[0], _i[1]);
+					break;
+				case 3:
+					glUniform3i(loc, _i[0], _i[1], _i[2]);
+					break;
+				case 4:
+					glUniform4i(loc, _i[0], _i[1], _i[2], _i[3]);
+					break;
+				default:
+					glUniform1iv(loc, size, _i);
+					break;
+			}
+
+			free(_i);
+		} else {
+			switch (size) {
+				case 1:
+					glUniform1f(loc, _f[0]);
+					break;
+				case 2:
+					glUniform2f(loc, _f[0], _f[1]);
+					break;
+				case 3:
+					glUniform3f(loc, _f[0], _f[1], _f[2]);
+					break;
+				case 4:
+					glUniform4f(loc, _f[0], _f[1], _f[2], _f[3]);
+					break;
+				default:
+					glUniform1fv(loc, size, _f);
+					break;
+			}
+		}
 	}
 }

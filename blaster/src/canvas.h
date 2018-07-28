@@ -1,8 +1,8 @@
 #pragma once
 
+#include <map>
 #include <time.h>
 #include <unistd.h>
-
 #include <GLES2/gl2.h>
 
 #define NUM_INDICES 6
@@ -19,6 +19,14 @@ const GLfloat vertices[NUM_VERTICES] = {
 	-1.0f,  1.0f, 0.0f,	1.0f,  1.0f, 0.0f,
 };
 
+struct Uniform {
+	size_t size;
+	bool is_int = false;
+	float * value = NULL;
+};
+
+typedef std::map<std::string, Uniform> UniformMap;
+
 class Canvas {
 public:
 	Canvas();
@@ -26,6 +34,7 @@ public:
 	void init(int width, int height);
 	bool load(const char * frag_path);
 	void update(const double);
+	int set_uniform(std::string, size_t, float *, bool);
 
 	const double t() const { return m_t; }
 	const double fps() const { return m_fps; }
@@ -48,5 +57,8 @@ private:
 	GLuint m_indexbuffer;
 	GLuint m_vertexbuffer;
 
+	UniformMap m_uniforms;
+
+	void uniforms() const;
 	bool compile(const char * frag_src);
 };
