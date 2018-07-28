@@ -56,7 +56,6 @@ int main(int argc, const char **argv)
 	screen.init(width, height);
 	canvas.init(width, height);
 	canvas.load(frag_path);
-	canvas.use();
 	timer.start();
 
 	pthread_t prompt_t;
@@ -97,7 +96,6 @@ int cli(std::string line, char *reply) {
 	std::stringstream ss(line);
 	std::string cmd;
 	ss >> cmd;
-
 
 	if ( cmd == "q" ) {
 		running.store(false);

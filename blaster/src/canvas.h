@@ -25,7 +25,6 @@ public:
 	virtual ~Canvas();
 	void init(int width, int height);
 	bool load(const char * frag_path);
-	void use() const;
 	void update(const double);
 
 	const double t() const { return m_t; }

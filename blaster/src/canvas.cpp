@@ -5,6 +5,8 @@
 
 #define U_LOC(n) glGetUniformLocation(m_program, n)
 
+const char * vsh = "attribute vec3 p;void main(){gl_Position=vec4(p,1.0);}";
+
 Canvas::Canvas() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -32,7 +34,6 @@ void Canvas::init(int width, int height) {
 	m_frag = glCreateShader(GL_FRAGMENT_SHADER);
 	m_vert = glCreateShader(GL_VERTEX_SHADER);
 
-	const char * vsh = "attribute vec3 p;void main(){gl_Position=vec4(p,1.0);}";
 	glShaderSource(m_vert, 1, &vsh, NULL);
 	glCompileShader(m_vert);
 	glAttachShader(m_program, m_vert);
@@ -49,7 +50,19 @@ void Canvas::init(int width, int height) {
 bool Canvas::load(const char * frag_path) {
 	static char * frag_src;
 	load_file(frag_path, &frag_src);
-	return compile(frag_src);
+	if ( ! compile(frag_src) ) {
+		return false;
+	}
+
+	glAttachShader(m_program, m_frag);
+	glLinkProgram(m_program);
+	glUseProgram(m_program);
+
+	GLint _l = glGetAttribLocation(m_program, "p");
+	glEnableVertexAttribArray(_l);
+	glVertexAttribPointer(_l, 3, GL_FLOAT, GL_FALSE, SZ_TRIANGLE, (void*)0);
+
+	return true;
 }
 
 bool Canvas::compile(const char * frag_src) {
@@ -60,18 +73,8 @@ bool Canvas::compile(const char * frag_src) {
 
 	glGetShaderiv(m_frag, GL_COMPILE_STATUS, &compiled);
 	glGetShaderiv(m_frag, GL_INFO_LOG_LENGTH, &info_len);
-	return (compiled && info_len <= 1);
-}
 
-void Canvas::use() const {
-	glDetachShader(m_frag, GL_FRAGMENT_SHADER);
-	glAttachShader(m_program, m_frag);
-	glLinkProgram(m_program);
-	glUseProgram(m_program);
-
-	GLint _l = glGetAttribLocation(m_program, "p");
-	glEnableVertexAttribArray(_l);
-	glVertexAttribPointer(_l, 3, GL_FLOAT, GL_FALSE, SZ_TRIANGLE, (void*)0);
+	return (compiled || info_len <= 1);
 }
 
 void Canvas::update(const double now) {
