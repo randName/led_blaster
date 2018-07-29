@@ -7,3 +7,4 @@ build-*/
 layouts/output/
 
 *.o
+build/

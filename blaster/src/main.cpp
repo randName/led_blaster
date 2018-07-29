@@ -36,10 +36,15 @@ int main(int argc, const char **argv)
 	int port = 8080;
 	int width = 128;
 	int height = 128;
-	const char * frag_path = "default.frag";
+	const char * frag_path = NULL;
 
 	int i;
 	std::string arg;
+
+	if ( argc < 2 ) {
+		printf("usage: %s [-p port] [fragment shader]\n", argv[0]);
+		exit(1);
+	};
 
 	for ( i = 0; i < argc; ++i ) {
 		arg = std::string(argv[i]);
@@ -51,6 +56,8 @@ int main(int argc, const char **argv)
 			std::stringstream(argv[++i]) >> height;
 		} else if ( arg == "-p" ) {
 			std::stringstream(argv[++i]) >> port;
+		} else {
+			frag_path = argv[i];
 		}
 	}
 
