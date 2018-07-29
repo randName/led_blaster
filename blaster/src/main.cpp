@@ -7,6 +7,7 @@
 #include "timer.h"
 #include "screen.h"
 #include "canvas.h"
+#include "blaster.h"
 #include "tcpserver.h"
 
 std::atomic<bool> running(true);
@@ -25,6 +26,7 @@ private:
 Timer timer;
 Screen screen;
 Canvas canvas;
+Blaster blaster;
 Server<GLHandler> server;
 
 void * prompt(void *);
@@ -32,9 +34,9 @@ void * prompt(void *);
 int main(int argc, const char **argv)
 {
 	int port = 8080;
-	int width = 256;
+	int width = 128;
 	int height = 128;
-	char * frag_path = (char *)"default.frag";
+	const char * frag_path = "default.frag";
 
 	int i;
 	std::string arg;
@@ -42,7 +44,7 @@ int main(int argc, const char **argv)
 	for ( i = 0; i < argc; ++i ) {
 		arg = std::string(argv[i]);
 		if ( arg == "-f" ) {
-			frag_path = (char *)argv[++i];
+			frag_path = argv[++i];
 		} else if ( arg == "-w" ) {
 			std::stringstream(argv[++i]) >> width;
 		} else if ( arg == "-h" ) {
@@ -56,6 +58,7 @@ int main(int argc, const char **argv)
 	screen.init(width, height);
 	canvas.init(width, height);
 	canvas.load(frag_path);
+	blaster.init(width, height, canvas.buffer());
 	timer.start();
 
 	pthread_t prompt_t;
@@ -65,8 +68,8 @@ int main(int argc, const char **argv)
 
 	while (running.load()) {
 		now = timer.update();
-
 		canvas.update(now);
+		blaster.blast(now);
 	}
 
 	server.stop();
