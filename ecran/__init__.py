@@ -1,6 +1,14 @@
 from flask import Flask, json, request
 
+from .blaster import Blaster
+
 app = Flask(__name__)
+app.config.from_envvar('BLASTER_SETTINGS')
+
+try:
+    blaster = Blaster(addresses=app.config['ADDRESSES'])
+except KeyError:
+    blaster = Blaster()
 
 
 class APIError(Exception):
@@ -29,6 +37,8 @@ def index():
 
     if action == 'nop':
         pass
+    elif action == 'sync':
+        blaster.t = max(blaster.t) + 100
     else:
         raise APIError('unrecognized action')
 
