@@ -137,8 +137,7 @@ int cli(std::string line, char *reply) {
 			}
 
 			if ( i > 0 ) {
-				l_int = line.find('.') == std::string::npos;
-				canvas.set_uniform(cmd, i, value, (bool)l_int);
+				canvas.set_uniform(cmd, i, value);
 				return sprintf(reply, "%d\n", i);
 			}
 		}

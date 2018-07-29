@@ -116,12 +116,11 @@ void Canvas::update(const double now) {
 	}
 }
 
-int Canvas::set_uniform(std::string name, size_t size, float * value, bool is_int) {
+int Canvas::set_uniform(std::string name, size_t size, float * value) {
 	static unsigned int i;
 
 	if ( m_uniforms[name].value == NULL ) {
 		m_uniforms[name].value = new float[size];
-		m_uniforms[name].is_int = is_int;
 		m_uniforms[name].size = size;
 	} else if ( size != m_uniforms[name].size ) {
 		float *tmp = (float *)realloc(m_uniforms[name].value, size*sizeof(float));
@@ -140,9 +139,7 @@ int Canvas::set_uniform(std::string name, size_t size, float * value, bool is_in
 
 void Canvas::uniforms() const {
 	static GLint loc;
-	static int * _i;
 	static const float * _f;
-	static unsigned int i, size;
 	static UniformMap::const_iterator itr;
 
 	for ( itr = m_uniforms.begin(); itr != m_uniforms.end(); ++itr ) {
@@ -153,52 +150,23 @@ void Canvas::uniforms() const {
 		}
 
 		_f = itr->second.value;
-		size = itr->second.size;
 
-		if ( itr->second.is_int ) {
-			_i = new int[size];
-
-			for ( i = 0; i < size; ++i ) {
-				_i[i] = (int)_f[i];
-			}
-
-			switch (size) {
-				case 1:
-					glUniform1i(loc, _i[0]);
-					break;
-				case 2:
-					glUniform2i(loc, _i[0], _i[1]);
-					break;
-				case 3:
-					glUniform3i(loc, _i[0], _i[1], _i[2]);
-					break;
-				case 4:
-					glUniform4i(loc, _i[0], _i[1], _i[2], _i[3]);
-					break;
-				default:
-					glUniform1iv(loc, size, _i);
-					break;
-			}
-
-			free(_i);
-		} else {
-			switch (size) {
-				case 1:
-					glUniform1f(loc, _f[0]);
-					break;
-				case 2:
-					glUniform2f(loc, _f[0], _f[1]);
-					break;
-				case 3:
-					glUniform3f(loc, _f[0], _f[1], _f[2]);
-					break;
-				case 4:
-					glUniform4f(loc, _f[0], _f[1], _f[2], _f[3]);
-					break;
-				default:
-					glUniform1fv(loc, size, _f);
-					break;
-			}
+		switch (itr->second.size) {
+			case 1:
+				glUniform1f(loc, _f[0]);
+				break;
+			case 2:
+				glUniform2f(loc, _f[0], _f[1]);
+				break;
+			case 3:
+				glUniform3f(loc, _f[0], _f[1], _f[2]);
+				break;
+			case 4:
+				glUniform4f(loc, _f[0], _f[1], _f[2], _f[3]);
+				break;
+			default:
+				glUniform1fv(loc, itr->second.size, _f);
+				break;
 		}
 	}
 }

@@ -21,7 +21,6 @@ const GLfloat vertices[NUM_VERTICES] = {
 
 struct Uniform {
 	size_t size;
-	bool is_int = false;
 	float * value = NULL;
 };
 
@@ -34,7 +33,7 @@ public:
 	void init(int width, int height);
 	bool load(const char * frag_path);
 	void update(const double);
-	int set_uniform(std::string, size_t, float *, bool);
+	int set_uniform(std::string, size_t, float *);
 
 	const double t() const { return m_t; }
 	const double fps() const { return m_fps; }
