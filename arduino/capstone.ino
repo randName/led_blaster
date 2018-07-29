@@ -5,15 +5,18 @@
 #define BOARD_READY 0xFF
 #define NUM_LEDS 512
 
-#define ID_PIN A0
+const byte id_pins[] = { 12, 11, 10, 9, 8 };
 
 CRGB leds[NUM_LEDS];
 const int ll = LED_LENGTH * 3;
 
 byte get_board_no() {
-    return 0x00; // for now
-    const unsigned int raw_id = analogRead(ID_PIN);
-    return raw_id >> 4;
+    byte i, s = 0;
+    for (i = 0; i < sizeof(id_pins); ++i) {
+        pinMode(id_pins[i], INPUT_PULLUP);
+        s += ( ! digitalRead(id_pins[i]) ) << ( i + 1 );
+    }
+    return s;
 }
 
 void setup() {
