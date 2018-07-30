@@ -10,6 +10,7 @@
 #include "blaster.h"
 #include "tcpserver.h"
 
+bool halt = false;
 std::atomic<bool> running(true);
 
 int cli(std::string, char*);
@@ -81,6 +82,9 @@ int main(int argc, const char **argv)
 
 	server.stop();
 	pthread_cancel(prompt_t);
+	if ( halt ) {
+		system("halt");
+	}
 	return 0;
 }
 
@@ -110,6 +114,9 @@ int cli(std::string line, char *reply) {
 
 	if ( cmd == "q" ) {
 		running.store(false);
+		if ( ( ss >> cmd ) && cmd == "halt" ) {
+			halt = true;
+		}
 		return sprintf(reply, "bye!\n");
 	}
 
