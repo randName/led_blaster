@@ -2,30 +2,32 @@
 #include <sstream>
 #include <iostream>
 
-#include <time.h>
 #include <pthread.h>
 
+#include "timer.h"
 #include "screen.h"
 #include "canvas.h"
+#include "blaster.h"
 #include "tcpserver.h"
 
+bool halt = false;
 std::atomic<bool> running(true);
 
-void halt() { running.store(false); }
-
-Screen screen;
-Canvas canvas;
+int cli(std::string, char*);
 
 class GLHandler : ConnHandler {
 public:
 	GLHandler(int f, char *a) : ConnHandler(f, a) {}
 private:
 	int handle(const int len, const char *msg, char *reply) {
-		printf("\n%s - %.*s\n", m_addr.c_str(), len, msg);
-		return sprintf(reply, "FPS: %.3f\n", canvas.fps());
+		return cli(msg, reply);
 	}
 };
 
+Timer timer;
+Screen screen;
+Canvas canvas;
+Blaster blaster;
 Server<GLHandler> server;
 
 void * prompt(void *);
@@ -33,23 +35,30 @@ void * prompt(void *);
 int main(int argc, const char **argv)
 {
 	int port = 8080;
-	int width = 256;
+	int width = 128;
 	int height = 128;
-	char * frag_path = (char *)"default.frag";
+	const char * frag_path = NULL;
 
 	int i;
 	std::string arg;
 
+	if ( argc < 2 ) {
+		printf("usage: %s [-p port] [fragment shader]\n", argv[0]);
+		exit(1);
+	};
+
 	for ( i = 0; i < argc; ++i ) {
 		arg = std::string(argv[i]);
 		if ( arg == "-f" ) {
-			frag_path = (char *)argv[++i];
+			frag_path = argv[++i];
 		} else if ( arg == "-w" ) {
 			std::stringstream(argv[++i]) >> width;
 		} else if ( arg == "-h" ) {
 			std::stringstream(argv[++i]) >> height;
 		} else if ( arg == "-p" ) {
 			std::stringstream(argv[++i]) >> port;
+		} else {
+			frag_path = argv[i];
 		}
 	}
 
@@ -57,45 +66,96 @@ int main(int argc, const char **argv)
 	screen.init(width, height);
 	canvas.init(width, height);
 	canvas.load(frag_path);
-	canvas.use();
+	blaster.init(width, height, canvas.buffer());
+	timer.start();
 
 	pthread_t prompt_t;
 	pthread_create(&prompt_t, NULL, prompt, NULL);
 
 	double now;
-	timespec ts_s, ts_n;
-	clock_gettime(CLOCK_MONOTONIC, &ts_s);
 
 	while (running.load()) {
-		clock_gettime(CLOCK_MONOTONIC, &ts_n);
-		now = double(ts_n.tv_nsec - ts_s.tv_nsec)/1000000000.0;
-		now += double(ts_n.tv_sec - ts_s.tv_sec);
-
+		now = timer.update();
 		canvas.update(now);
+		blaster.blast(now);
 	}
 
 	server.stop();
 	pthread_cancel(prompt_t);
+	if ( halt ) {
+		system("halt");
+	}
 	return 0;
 }
 
 void * prompt(void * a) {
 	static std::string line;
+	static char reply[256];
 
 	printf("> ");
 	while (std::getline(std::cin, line)) {
-		if (line == "q") {
-			halt();
-		} else if (line == "fps") {
-			printf("%.2f", canvas.fps());
-		} else if (line == "t") {
-			printf("%.2f", canvas.t());
-		} else {
-			printf("???");
-		}
+		cli(line, reply);
+		printf("%s", reply);
 		if (running.load()) {
 			printf("\n> ");
 		}
 	}
 	return (void *)0;
+}
+
+int cli(std::string line, char *reply) {
+	static int l_int;
+	static double l_double;
+	static unsigned int i = 0;
+
+	std::stringstream ss(line);
+	std::string cmd;
+	ss >> cmd;
+
+	if ( cmd == "q" ) {
+		running.store(false);
+		if ( ( ss >> cmd ) && cmd == "halt" ) {
+			halt = true;
+		}
+		return sprintf(reply, "bye!\n");
+	}
+
+	if ( cmd == "fps" ) {
+		return sprintf(reply, "%.2f\n", canvas.fps());
+	}
+
+	if ( cmd == "t" ) {
+		if ( ss >> l_double ) {
+			timer.shift(l_double);
+		}
+		return sprintf(reply, "%.3f\n", timer.now());
+	}
+
+	if ( cmd == "p" ) {
+		const unsigned char * p = canvas.buffer();
+		if ( ss >> l_int ) {
+			i = l_int * 3;
+			if ( i > canvas.size() ) {
+				i = 0;
+			}
+		}
+		return sprintf(reply, "#%02X%02X%02X\n", p[i], p[i+1], p[i+2]);
+	}
+
+	if ( cmd == "u" ) {
+		float value[32];
+		if ( ss >> cmd ) {
+			i = 0;
+			while ( ss >> l_double ) {
+				value[i++] = (float)l_double;
+			}
+
+			if ( i > 0 ) {
+				canvas.set_uniform(cmd, i, value);
+				return sprintf(reply, "%d\n", i);
+			}
+		}
+	}
+
+	return sprintf(reply, "???\n");
 }

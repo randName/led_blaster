@@ -1,4 +1,4 @@
-EXE = ./blaster
+EXE = ../build/blaster
 
 CXX = g++
 SOURCES := $(wildcard src/*.cpp) $(wildcard include/*.cpp)

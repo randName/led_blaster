@@ -5,6 +5,8 @@
 
 #define U_LOC(n) glGetUniformLocation(m_program, n)
 
+const char * vsh = "attribute vec3 p;void main(){gl_Position=vec4(p,1.0);}";
+
 Canvas::Canvas() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -32,7 +34,6 @@ void Canvas::init(int width, int height) {
 	m_frag = glCreateShader(GL_FRAGMENT_SHADER);
 	m_vert = glCreateShader(GL_VERTEX_SHADER);
 
-	const char * vsh = "attribute vec3 p;void main(){gl_Position=vec4(p,1.0);}";
 	glShaderSource(m_vert, 1, &vsh, NULL);
 	glCompileShader(m_vert);
 	glAttachShader(m_program, m_vert);
@@ -49,7 +50,19 @@ void Canvas::init(int width, int height) {
 bool Canvas::load(const char * frag_path) {
 	static char * frag_src;
 	load_file(frag_path, &frag_src);
-	return compile(frag_src);
+	if ( ! compile(frag_src) ) {
+		return false;
+	}
+
+	glAttachShader(m_program, m_frag);
+	glLinkProgram(m_program);
+	glUseProgram(m_program);
+
+	GLint _l = glGetAttribLocation(m_program, "p");
+	glEnableVertexAttribArray(_l);
+	glVertexAttribPointer(_l, 3, GL_FLOAT, GL_FALSE, SZ_TRIANGLE, (void*)0);
+
+	return true;
 }
 
 bool Canvas::compile(const char * frag_src) {
@@ -60,17 +73,8 @@ bool Canvas::compile(const char * frag_src) {
 
 	glGetShaderiv(m_frag, GL_COMPILE_STATUS, &compiled);
 	glGetShaderiv(m_frag, GL_INFO_LOG_LENGTH, &info_len);
-	return (compiled && info_len <= 1);
-}
 
-void Canvas::use() const {
-	glAttachShader(m_program, m_frag);
-	glLinkProgram(m_program);
-	glUseProgram(m_program);
-
-	GLint _l = glGetAttribLocation(m_program, "p");
-	glEnableVertexAttribArray(_l);
-	glVertexAttribPointer(_l, 3, GL_FLOAT, GL_FALSE, SZ_TRIANGLE, (void*)0);
+	return (compiled || info_len <= 1);
 }
 
 void Canvas::update(const double now) {
@@ -92,11 +96,13 @@ void Canvas::update(const double now) {
 	m_dt = now - m_t;
 	m_t = now;
 
-	set_uniform(U_LOC("u_resolution"), m_width, m_height);
-	set_uniform(U_LOC("u_time"), m_t);
-	set_uniform(U_LOC("u_delta"), m_dt);
-	set_uniform(U_LOC("u_date"),
+	glUniform2f(U_LOC("u_resolution"), m_width, m_height);
+	glUniform1f(U_LOC("u_time"), m_t);
+	glUniform1f(U_LOC("u_delta"), m_dt);
+	glUniform4f(U_LOC("u_date"),
 		m_d->tm_wday, m_d->tm_hour, m_d->tm_min, m_d->tm_sec);
+
+	uniforms();
 
 	glDrawElements(GL_TRIANGLES, NUM_INDICES, GL_UNSIGNED_SHORT, 0);
 	glReadPixels(0, 0, m_width, m_height, GL_RGB, GL_UNSIGNED_BYTE, m_buffer);
@@ -110,22 +116,57 @@ void Canvas::update(const double now) {
 	}
 }
 
-void Canvas::set_uniform(GLint loc, float _x) const {
-	if (loc == -1) { return; }
-	glUniform1f(loc, _x);
+int Canvas::set_uniform(std::string name, size_t size, float * value) {
+	static unsigned int i;
+
+	if ( m_uniforms[name].value == NULL ) {
+		m_uniforms[name].value = new float[size];
+		m_uniforms[name].size = size;
+	} else if ( size != m_uniforms[name].size ) {
+		float *tmp = (float *)realloc(m_uniforms[name].value, size*sizeof(float));
+		if ( tmp != NULL ) {
+			m_uniforms[name].value = tmp;
+			m_uniforms[name].size = size;
+		}
+	}
+
+	for ( i = 0; i < m_uniforms[name].size; ++i ) {
+		m_uniforms[name].value[i] = *(value + i);
+	}
+
+	return 0;
 }
 
-void Canvas::set_uniform(GLint loc, float _x, float _y) const {
-	if (loc == -1) { return; }
-	glUniform2f(loc, _x, _y);
-}
+void Canvas::uniforms() const {
+	static GLint loc;
+	static const float * _f;
+	static UniformMap::const_iterator itr;
 
-void Canvas::set_uniform(GLint loc, float _x, float _y, float _z) const {
-	if (loc == -1) { return; }
-	glUniform3f(loc, _x, _y, _z);
-}
+	for ( itr = m_uniforms.begin(); itr != m_uniforms.end(); ++itr ) {
+		loc = U_LOC(itr->first.c_str());
 
-void Canvas::set_uniform(GLint loc, float _x, float _y, float _z, float _w) const {
-	if (loc == -1) { return; }
-	glUniform4f(loc, _x, _y, _z, _w);
+		if ( loc == -1 ) {
+			continue;
+		}
+
+		_f = itr->second.value;
+
+		switch (itr->second.size) {
+			case 1:
+				glUniform1f(loc, _f[0]);
+				break;
+			case 2:
+				glUniform2f(loc, _f[0], _f[1]);
+				break;
+			case 3:
+				glUniform3f(loc, _f[0], _f[1], _f[2]);
+				break;
+			case 4:
+				glUniform4f(loc, _f[0], _f[1], _f[2], _f[3]);
+				break;
+			default:
+				glUniform1fv(loc, itr->second.size, _f);
+				break;
+		}
+	}
 }
