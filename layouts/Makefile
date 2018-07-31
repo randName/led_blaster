@@ -1,5 +1,7 @@
+PYTHON = python3
+
 all:
-	pipenv run python generate.py
+	$(PYTHON) generate.py
 
 clean:
 	@rm -rvf output/*
