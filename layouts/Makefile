@@ -1,2 +1,5 @@
 all:
-	./generate_layouts
+	pipenv run python generate.py
+
+clean:
+	@rm -rvf output/*

@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "screen.h"
 
 Screen::Screen() {
@@ -6,17 +5,14 @@ Screen::Screen() {
 
 	m_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	if (m_display == EGL_NO_DISPLAY) {
-		printf("E: display\n");
 		return;
 	}
 
 	if (eglInitialize(m_display, NULL, NULL) == EGL_FALSE) {
-		printf("E: init\n");
 		return;
 	}
 
 	if (!eglChooseConfig(m_display, MAIN_ATT, &m_config, 1, &numConf)) {
-		printf("E: config\n");
 		return;
 	}
 }
@@ -41,7 +37,6 @@ void Screen::init(unsigned int w, unsigned int h) {
 
 	m_surface = eglCreatePbufferSurface(m_display, m_config, pbuffer_attr);
 	if (m_surface == EGL_NO_SURFACE) {
-		printf("E: surface\n");
 		return;
 	}
 
