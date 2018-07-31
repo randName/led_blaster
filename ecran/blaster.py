@@ -52,6 +52,10 @@ class Blaster:
     def fps(self):
         return tuple(float(i) for i in self.blast('fps'))
 
+    @property
+    def uniforms(self):
+        return self._uniforms
+
     def __setitem__(self, key, val):
         try:
             vals = ' '.join('%.4f' % float(v) for v in val)

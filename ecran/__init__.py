@@ -50,3 +50,11 @@ def index():
         raise APIError('unrecognized action')
 
     return json.jsonify(resp)
+
+@app.route('/status')
+def status():
+    return json.jsonify({
+        't': blaster.t,
+        'fps': blaster.fps,
+        'uniforms': blaster.uniforms,
+    })
