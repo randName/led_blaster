@@ -5,8 +5,7 @@ class Blaster:
 
     def __init__(self, addresses=(('localhost', 8080),)):
         self.addr = addresses
-        self._len = len(self.addr)
-        self.a = range(self._len)
+        self.a = range(len(self.addr))
         self._sks = [None for _ in self.addr]
         self._uniforms = {}
 
@@ -21,17 +20,25 @@ class Blaster:
 
         if self._sks[i] is not None:
             try:
-                self._sks[i].send(packet.encode())
-                return self._sks[i].recv(4096).decode()
+                self._sks[i].send(packet)
+                return self._sks[i].recv(4096)
             except sk.error:
                 self._sks[i] = None
 
-        return False
+        return None
 
     def blast(self, q):
         if not q.endswith('\n'):
             q += '\n'
-        return tuple(self.send(i, q).strip() for i in self.a)
+        q = q.encode()
+
+        for i in self.a:
+            reply = self.send(i, q)
+            if not reply:
+                continue
+            reply = reply.decode().strip()
+            if reply:
+                yield reply
 
     @property
     def t(self):
@@ -39,22 +46,28 @@ class Blaster:
 
     @t.setter
     def t(self, val):
-        self.blast('t %.5f' % val)
+        tuple(self.blast('t %.5f' % val))
 
     @property
     def fps(self):
         return tuple(float(i) for i in self.blast('fps'))
 
     def __setitem__(self, key, val):
-        vals = ' '.join('%.4f' % float(v) for v in val)
-        self.blast('u %s %s' % (key, vals))
+        try:
+            vals = ' '.join('%.4f' % float(v) for v in val)
+        except TypeError:
+            vals = '%.4f' % float(val)
+        tuple(self.blast('u %s %s' % (key, vals)))
         self._uniforms[key] = val
 
     def __getitem__(self, key):
         try:
             return self._uniforms[key]
         except KeyError:
-            return None
+            return 0
 
     def __len__(self):
-        return self._len
+        return len(self.addr)
+
+    def stop(self, halt=False):
+        tuple(self.blast('q halt' if halt else 'q'))

@@ -35,10 +35,17 @@ def index():
     except AttributeError:
         raise APIError('no data received')
 
+    data = data.pop('data', {})
+
     if action == 'nop':
         pass
     elif action == 'sync':
-        blaster.t = max(blaster.t) + 100
+        blaster.t = max(blaster.t) + 1
+    elif action == 'update':
+        for k, v in data.items():
+            blaster[k] = v
+    elif action == 'stop':
+        blaster.stop(data.get('halt', False))
     else:
         raise APIError('unrecognized action')
 
