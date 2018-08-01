@@ -1,5 +1,16 @@
+const canvas = document.getElementById('ecran');
+
 class Ecran {
   constructor() {
+    this.sandbox = new GlslCanvas(canvas);
+    this.shader = 'run.frag';
+    this.load();
+  }
+
+  load() {
+    fetch('/static/' + this.shader)
+      .then(r => r.text())
+      .then(r => this.sandbox.load(r));
   }
 
   status() {
@@ -23,6 +34,11 @@ class Ecran {
   }
 
   update(name, value) {
+    if ( Array.isArray(value) ) {
+      this.sandbox.setUniform(name, ...value);
+    } else {
+      this.sandbox.setUniform(name, value);
+    }
     return this.send('update', {[name]: value});
   }
 }
