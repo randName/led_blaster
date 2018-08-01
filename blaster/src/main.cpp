@@ -121,14 +121,14 @@ int cli(std::string line, char *reply) {
 	}
 
 	if ( cmd == "fps" ) {
-		return sprintf(reply, "%.2f\n", canvas.fps());
+		return sprintf(reply, "%.3f\n", canvas.fps());
 	}
 
 	if ( cmd == "t" ) {
 		if ( ss >> l_double ) {
 			timer.shift(l_double);
 		}
-		return sprintf(reply, "%.3f\n", timer.now());
+		return sprintf(reply, "%.5f\n", timer.now());
 	}
 
 	if ( cmd == "p" ) {

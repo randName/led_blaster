@@ -31,8 +31,10 @@ int Blaster::init(int w, int h, const unsigned char * leds) {
 		m_info[b][1] = m_ard[b].get();
 
 		if ( m_info[b][0] != m_info[b][1] ) {
-			printf("\nmismatch: %d (%02X) (%02X)\n", b, m_info[b][0], m_info[b][1]);
+			printf("mismatch: %d (0x%02X -> 0x%02X)\n", b, m_info[b][0], m_info[b][1]);
 			continue;
+		} else {
+			printf("%d: 0x%02X\n", b, m_info[b][0]);
 		}
 
 		sprintf(filename, "layouts/%02X/layout.txt", m_info[b][1]);
