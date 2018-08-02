@@ -1,4 +1,5 @@
 from flask import Flask, json, request
+from flask import send_from_directory
 
 from .blaster import Blaster
 
@@ -40,7 +41,10 @@ def index():
     if action == 'nop':
         pass
     elif action == 'sync':
-        blaster.t = max(blaster.t) + 1
+        t = blaster.t
+        if t:
+            blaster.t = max(t) + 5
+            resp['message'] = '%s => %s' % (t, blaster.t)
     elif action == 'update':
         for k, v in data.items():
             blaster[k] = v
@@ -58,3 +62,7 @@ def status():
         'fps': blaster.fps,
         'uniforms': blaster.uniforms,
     })
+
+@app.route('/shader/<path:filename>')
+def shader(filename):
+    return send_from_directory('../shaders/', filename)
