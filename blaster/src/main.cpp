@@ -121,14 +121,14 @@ int cli(std::string line, char *reply) {
 	}
 
 	if ( cmd == "fps" ) {
-		return sprintf(reply, "%.2f\n", canvas.fps());
+		return sprintf(reply, "%.3f\n", canvas.fps());
 	}
 
 	if ( cmd == "t" ) {
 		if ( ss >> l_double ) {
 			timer.shift(l_double);
 		}
-		return sprintf(reply, "%.3f\n", timer.now());
+		return sprintf(reply, "%.5f\n", timer.now());
 	}
 
 	if ( cmd == "p" ) {
@@ -145,14 +145,20 @@ int cli(std::string line, char *reply) {
 	if ( cmd == "u" ) {
 		float value[32];
 		if ( ss >> cmd ) {
-			i = 0;
-			while ( ss >> l_double ) {
-				value[i++] = (float)l_double;
-			}
+			if ( ss >> l_int ) {
+				i = 0;
+				while ( ss >> l_double ) {
+					value[i] = (float)l_double;
+					++i;
+					if ( (int)i == l_int ) {
+						break;
+					}
+				}
 
-			if ( i > 0 ) {
-				canvas.set_uniform(cmd, i, value);
-				return sprintf(reply, "%d\n", i);
+				if ( i > 0 ) {
+					canvas.set_uniform(cmd, i, value);
+					return sprintf(reply, "%d\n", i);
+				}
 			}
 		}
 	}

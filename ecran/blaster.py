@@ -59,9 +59,11 @@ class Blaster:
     def __setitem__(self, key, val):
         try:
             vals = ' '.join('%.4f' % float(v) for v in val)
+            length = len(val)
         except TypeError:
             vals = '%.4f' % float(val)
-        tuple(self.blast('u %s %s' % (key, vals)))
+            length = 1
+        tuple(self.blast('u %s %d %s' % (key, length, vals)))
         self._uniforms[key] = val
 
     def __getitem__(self, key):
