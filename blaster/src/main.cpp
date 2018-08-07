@@ -145,14 +145,20 @@ int cli(std::string line, char *reply) {
 	if ( cmd == "u" ) {
 		float value[32];
 		if ( ss >> cmd ) {
-			i = 0;
-			while ( ss >> l_double ) {
-				value[i++] = (float)l_double;
-			}
+			if ( ss >> l_int ) {
+				i = 0;
+				while ( ss >> l_double ) {
+					value[i] = (float)l_double;
+					++i;
+					if ( (int)i == l_int ) {
+						break;
+					}
+				}
 
-			if ( i > 0 ) {
-				canvas.set_uniform(cmd, i, value);
-				return sprintf(reply, "%d\n", i);
+				if ( i > 0 ) {
+					canvas.set_uniform(cmd, i, value);
+					return sprintf(reply, "%d\n", i);
+				}
 			}
 		}
 	}

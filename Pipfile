@@ -8,10 +8,15 @@ url = "https://www.piwheels.org/simple"
 name = "piwheels"
 verify_ssl = true
 
+[scripts]
+server = 'gunicorn ecran:app'
+
 [requires]
 python_version = "3.5"
 
 [packages]
+flask = "*"
+gunicorn = "*"
 
 [dev-packages]
 "flake8" = "*"
