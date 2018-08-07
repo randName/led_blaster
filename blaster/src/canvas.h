@@ -34,6 +34,7 @@ public:
 	bool load(const char * frag_path);
 	void update(const double);
 	int set_uniform(std::string, size_t, float *);
+	int get_uniform(std::string, float *);
 
 	const double t() const { return m_t; }
 	const double fps() const { return m_fps; }

@@ -159,6 +159,18 @@ int cli(std::string line, char *reply) {
 					canvas.set_uniform(cmd, i, value);
 					return sprintf(reply, "%d\n", i);
 				}
+			} else {
+				l_int = canvas.get_uniform(cmd, value);
+				switch ( l_int ) {
+					case 1:
+						return sprintf(reply, "%.5f\n", value[0]);
+					case 2:
+						return sprintf(reply, "%.4f\t%.4f\n", value[0], value[1]);
+					case 3:
+						return sprintf(reply, "%.3f\t%.3f\t%.3f\n", value[0], value[1], value[2]);
+					default:
+						break;
+				}
 			}
 		}
 	}

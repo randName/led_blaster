@@ -122,7 +122,7 @@ int Canvas::set_uniform(std::string name, size_t size, float * value) {
 	if ( m_uniforms[name].value == NULL ) {
 		m_uniforms[name].value = new float[size];
 		m_uniforms[name].size = size;
-	} else if ( size != m_uniforms[name].size ) {
+	} else if ( size > m_uniforms[name].size ) {
 		float *tmp = (float *)realloc(m_uniforms[name].value, size*sizeof(float));
 		if ( tmp != NULL ) {
 			m_uniforms[name].value = tmp;
@@ -135,6 +135,20 @@ int Canvas::set_uniform(std::string name, size_t size, float * value) {
 	}
 
 	return 0;
+}
+
+int Canvas::get_uniform(std::string name, float * value) {
+	static unsigned int i;
+
+	if ( m_uniforms[name].value == NULL ) {
+		return -1;
+	}
+
+	for ( i = 0; i < m_uniforms[name].size; ++i ) {
+		value[i] = m_uniforms[name].value[i];
+	}
+
+	return m_uniforms[name].size;
 }
 
 void Canvas::uniforms() const {
