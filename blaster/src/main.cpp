@@ -21,7 +21,9 @@ public:
 	GLHandler(int f, char *a) : ConnHandler(f, a) {}
 private:
 	int handle(const int len, const char *msg, char *reply) {
-		return cli(msg, reply);
+		static std::string line;
+		std::getline(std::stringstream(msg), line);
+		return cli(line, reply);
 	}
 };
 
@@ -30,6 +32,7 @@ Screen screen;
 Canvas canvas;
 Blaster blaster;
 Server<GLHandler> server;
+
 const char * frag_path = NULL;
 char info_log[1024];
 
@@ -40,16 +43,11 @@ int main(int argc, const char **argv)
 	int port = 8080;
 	int width = 128;
 	int height = 128;
+	bool headless = false;
 
-	int i;
 	std::string arg;
 
-	if ( argc < 2 ) {
-		printf("usage: %s [-p port] [fragment shader]\n", argv[0]);
-		exit(1);
-	};
-
-	for ( i = 0; i < argc; ++i ) {
+	for ( int i = 1; i < argc; ++i ) {
 		arg = std::string(argv[i]);
 		if ( arg == "-f" ) {
 			frag_path = argv[++i];
@@ -59,6 +57,8 @@ int main(int argc, const char **argv)
 			std::stringstream(argv[++i]) >> height;
 		} else if ( arg == "-p" ) {
 			std::stringstream(argv[++i]) >> port;
+		} else if ( arg == "-s" ) {
+			headless = true;
 		} else {
 			frag_path = argv[i];
 		}
@@ -72,7 +72,9 @@ int main(int argc, const char **argv)
 	timer.start();
 
 	pthread_t prompt_t;
-	pthread_create(&prompt_t, NULL, prompt, NULL);
+	if ( ! headless ) {
+		pthread_create(&prompt_t, NULL, prompt, NULL);
+	}
 
 	double now;
 

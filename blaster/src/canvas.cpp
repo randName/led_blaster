@@ -5,7 +5,8 @@
 
 #define U_LOC(n) glGetUniformLocation(m_program, n)
 
-const char * vsh = "attribute vec3 p;void main(){gl_Position=vec4(p,1.0);}";
+const char * vsh = "attribute vec3 p;void main(){gl_Position=vec4(p,1.);}";
+const char * fsh = "void main(){gl_FragColor=vec4(0.);}";
 
 Canvas::Canvas() {
 	glEnable(GL_BLEND);
@@ -48,8 +49,13 @@ bool Canvas::load(const char * frag_path, char * info_log) {
 	static char * frag_src;
 	static GLint linked, info_len;
 
-	load_file(frag_path, &frag_src);
-	m_frag = compile(frag_src);
+	if ( frag_path == NULL ) {
+		m_frag = compile(fsh);
+	} else {
+		load_file(frag_path, &frag_src);
+		m_frag = compile(frag_src);
+	}
+
 	if ( ! m_frag ) {
 		sprintf(info_log, "ERROR:COMPILER");
 		return false;
