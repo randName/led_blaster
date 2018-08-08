@@ -31,7 +31,7 @@ public:
 	Canvas();
 	virtual ~Canvas();
 	void init(int width, int height);
-	bool load(const char * frag_path);
+	bool load(const char *, char *);
 	void update(const double);
 	int set_uniform(std::string, size_t, float *);
 	int get_uniform(std::string, float *);

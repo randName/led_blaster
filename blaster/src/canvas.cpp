@@ -30,6 +30,7 @@ void Canvas::init(int width, int height) {
 
 	m_program = 0;
 	m_frag = 0;
+
 	m_vert = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(m_vert, 1, &vsh, NULL);
 	glCompileShader(m_vert);
@@ -43,39 +44,42 @@ void Canvas::init(int width, int height) {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, SZ_INDICES, indices, GL_STATIC_DRAW);
 }
 
-bool Canvas::load(const char * frag_path) {
+bool Canvas::load(const char * frag_path, char * info_log) {
 	static char * frag_src;
-	static GLuint frag_tmp;
-	static GLchar info_log[1024];
 	static GLint linked, info_len;
 
 	load_file(frag_path, &frag_src);
-	frag_tmp = compile(frag_src);
-	if ( ! frag_tmp ) {
+	m_frag = compile(frag_src);
+	if ( ! m_frag ) {
+		sprintf(info_log, "ERROR:COMPILER");
 		return false;
 	}
 
-	glDetachShader(m_program, m_frag);
-	m_frag = frag_tmp;
+	GLuint prog = glCreateProgram();
+	glAttachShader(prog, m_vert);
+	glAttachShader(prog, m_frag);
+	glLinkProgram(prog);
 
-	m_program = glCreateProgram();
-	glAttachShader(m_program, m_vert);
-	glAttachShader(m_program, m_frag);
-	glLinkProgram(m_program);
-
-	glGetProgramiv(m_program, GL_LINK_STATUS, &linked);
+	glGetProgramiv(prog, GL_LINK_STATUS, &linked);
+	glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &info_len);
+	glGetProgramInfoLog(prog, info_len, NULL, info_log);
 
 	if ( linked == GL_FALSE ) {
-		glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &info_len);
-		if ( info_len > 1 ) {
-			glGetProgramInfoLog(m_program, info_len, NULL, info_log);
-			fprintf(stderr, "\n%s\n", info_log);
+		if ( info_len < 1 ) {
+			sprintf(info_log, "ERROR:LINKER");
 		}
-		glDeleteProgram(m_program);
+		glDeleteProgram(prog);
 		return false;
+	}
+
+	if ( info_len <= 1 ) {
+		sprintf(info_log, "OK");
 	}
 
 	glDeleteShader(m_frag);
+	glDeleteProgram(m_program);
+	m_program = prog;
+
 	glUseProgram(m_program);
 
 	GLint _l = glGetAttribLocation(m_program, "p");

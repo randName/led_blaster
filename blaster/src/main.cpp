@@ -31,6 +31,7 @@ Canvas canvas;
 Blaster blaster;
 Server<GLHandler> server;
 const char * frag_path = NULL;
+char info_log[1024];
 
 void * prompt(void *);
 
@@ -66,7 +67,7 @@ int main(int argc, const char **argv)
 	server.init(port);
 	screen.init(width, height);
 	canvas.init(width, height);
-	canvas.load(frag_path);
+	canvas.load(frag_path, info_log);
 	blaster.init(width, height, canvas.buffer());
 	timer.start();
 
@@ -81,7 +82,7 @@ int main(int argc, const char **argv)
 		blaster.blast(now);
 
 		if (reload.load()) {
-			canvas.load(frag_path);
+			canvas.load(frag_path, info_log);
 			reload.store(false);
 		}
 	}
@@ -153,7 +154,8 @@ int cli(std::string line, char *reply) {
 			frag_path = strdup(cmd.c_str());
 		}
 		reload.store(true);
-		return sprintf(reply, "loading %s\n", frag_path);
+		while (reload.load());
+		return sprintf(reply, "%s - %s\n", frag_path, info_log);
 	}
 
 	if ( cmd == "u" ) {
