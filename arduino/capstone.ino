@@ -1,7 +1,7 @@
 #include "FastLED.h"
 #include "layout.h"
 
-#define SERIAL_BAUD 500000
+#define SERIAL_BAUD 1000000
 #define BOARD_READY 0xFF
 #define NUM_LEDS 512
 
@@ -44,7 +44,7 @@ void setup() {
     }
 
     FastLED.show();
-    delay(1000);
+    delay(10);
 }
 
 void loop()

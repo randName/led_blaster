@@ -36,11 +36,12 @@ bool Blaster::load(const int b) {
 		return false;
 	}
 
-	if ( m_ard[b].flush() == 0 && m_index[b].size() ) {
+	if ( m_ard[b].status() == 0 && m_index[b].size() ) {
 		return true;
 	}
 
 	m_index[b].clear();
+	m_id[b] = 0xFF;
 
 	sprintf(port, "/dev/ttyUSB%d", b);
 	if ( m_ard[b].begin(port) < 0 ) {
@@ -51,6 +52,7 @@ bool Blaster::load(const int b) {
 	layout = m_ard[b].get();
 
 	if ( m_id[b] != layout ) {
+		m_id[b] = 0xFF;
 		return false;
 	}
 

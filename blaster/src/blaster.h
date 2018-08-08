@@ -4,7 +4,7 @@
 
 #define BOARDS 8
 #define BOARD_READY 0xFF
-#define BLAST_LIMIT 0.025f
+#define BLAST_LIMIT 0.02f
 
 class Blaster {
 public:

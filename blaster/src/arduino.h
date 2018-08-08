@@ -10,7 +10,8 @@ public:
 	virtual ~Arduino();
 	void reset();
 	int flush() const;
-	int begin(const char * port, const int baud = B500000);
+	int status(const bool s = false);
+	int begin(const char * port, const int baud = B1000000);
 
 	int get(const bool blocking = true) const;
 	int send(unsigned char * buf, int size) const;
@@ -21,6 +22,5 @@ private:
 	char m_port[20];
 	struct termios m_settings;
 
-	int status(const bool s = false);
 	int settings(const bool s = false);
 };
