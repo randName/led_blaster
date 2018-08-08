@@ -158,6 +158,24 @@ int cli(std::string line, char *reply) {
 		return sprintf(reply, "%s - %s\n", frag_path, info_log);
 	}
 
+	if ( cmd == "b" ) {
+		if ( ss >> l_int ) {
+			if ( blaster.load(l_int) ) {
+				return sprintf(reply, "0x%02X\n", blaster.id(l_int));
+			} else {
+				return sprintf(reply, "NULL\n");
+			}
+		} else {
+			l_int = 0;
+			for ( i = 0; i < BOARDS; ++i ) {
+				if ( blaster.load(i) ) {
+					++l_int;
+				}
+			}
+			return sprintf(reply, "%d\n", l_int);
+		}
+	}
+
 	if ( cmd == "u" ) {
 		float value[32];
 		if ( ss >> cmd ) {
