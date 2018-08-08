@@ -28,15 +28,11 @@ void Canvas::init(int width, int height) {
 		m_buffer = tmp;
 	}
 
-	m_program = glCreateProgram();
-	glUseProgram(m_program);
-
-	m_frag = glCreateShader(GL_FRAGMENT_SHADER);
+	m_program = 0;
+	m_frag = 0;
 	m_vert = glCreateShader(GL_VERTEX_SHADER);
-
 	glShaderSource(m_vert, 1, &vsh, NULL);
 	glCompileShader(m_vert);
-	glAttachShader(m_program, m_vert);
 
 	glGenBuffers(1, &m_vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, m_vertexbuffer);
@@ -49,13 +45,37 @@ void Canvas::init(int width, int height) {
 
 bool Canvas::load(const char * frag_path) {
 	static char * frag_src;
+	static GLuint frag_tmp;
+	static GLchar info_log[1024];
+	static GLint linked, info_len;
+
 	load_file(frag_path, &frag_src);
-	if ( ! compile(frag_src) ) {
+	frag_tmp = compile(frag_src);
+	if ( ! frag_tmp ) {
 		return false;
 	}
 
+	glDetachShader(m_program, m_frag);
+	m_frag = frag_tmp;
+
+	m_program = glCreateProgram();
+	glAttachShader(m_program, m_vert);
 	glAttachShader(m_program, m_frag);
 	glLinkProgram(m_program);
+
+	glGetProgramiv(m_program, GL_LINK_STATUS, &linked);
+
+	if ( linked == GL_FALSE ) {
+		glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &info_len);
+		if ( info_len > 1 ) {
+			glGetProgramInfoLog(m_program, info_len, NULL, info_log);
+			fprintf(stderr, "\n%s\n", info_log);
+		}
+		glDeleteProgram(m_program);
+		return false;
+	}
+
+	glDeleteShader(m_frag);
 	glUseProgram(m_program);
 
 	GLint _l = glGetAttribLocation(m_program, "p");
@@ -65,16 +85,23 @@ bool Canvas::load(const char * frag_path) {
 	return true;
 }
 
-bool Canvas::compile(const char * frag_src) {
+GLuint Canvas::compile(const char * frag_src) {
 	static GLint compiled, info_len;
 
-	glShaderSource(m_frag, 1, &frag_src, NULL);
-	glCompileShader(m_frag);
+	GLuint shader = glCreateShader(GL_FRAGMENT_SHADER);
 
-	glGetShaderiv(m_frag, GL_COMPILE_STATUS, &compiled);
-	glGetShaderiv(m_frag, GL_INFO_LOG_LENGTH, &info_len);
+	glShaderSource(shader, 1, &frag_src, NULL);
+	glCompileShader(shader);
 
-	return (compiled || info_len <= 1);
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &info_len);
+
+	if ( compiled == GL_FALSE ) {
+		glDeleteShader(shader);
+		return 0;
+	}
+
+	return shader;
 }
 
 void Canvas::update(const double now) {

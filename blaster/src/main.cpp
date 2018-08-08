@@ -12,6 +12,7 @@
 
 bool halt = false;
 std::atomic<bool> running(true);
+std::atomic<bool> reload(false);
 
 int cli(std::string, char*);
 
@@ -29,6 +30,7 @@ Screen screen;
 Canvas canvas;
 Blaster blaster;
 Server<GLHandler> server;
+const char * frag_path = NULL;
 
 void * prompt(void *);
 
@@ -37,7 +39,6 @@ int main(int argc, const char **argv)
 	int port = 8080;
 	int width = 128;
 	int height = 128;
-	const char * frag_path = NULL;
 
 	int i;
 	std::string arg;
@@ -78,6 +79,11 @@ int main(int argc, const char **argv)
 		now = timer.update();
 		canvas.update(now);
 		blaster.blast(now);
+
+		if (reload.load()) {
+			canvas.load(frag_path);
+			reload.store(false);
+		}
 	}
 
 	server.stop();
@@ -140,6 +146,14 @@ int cli(std::string line, char *reply) {
 			}
 		}
 		return sprintf(reply, "#%02X%02X%02X\n", p[i], p[i+1], p[i+2]);
+	}
+
+	if ( cmd == "r" ) {
+		if ( ss >> cmd ) {
+			frag_path = strdup(cmd.c_str());
+		}
+		reload.store(true);
+		return sprintf(reply, "loading %s\n", frag_path);
 	}
 
 	if ( cmd == "u" ) {

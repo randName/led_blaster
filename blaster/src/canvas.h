@@ -60,5 +60,5 @@ private:
 	UniformMap m_uniforms;
 
 	void uniforms() const;
-	bool compile(const char * frag_src);
+	GLuint compile(const char * frag_src);
 };
