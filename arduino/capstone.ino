@@ -25,8 +25,24 @@ void setup() {
     Serial.write(BOARD_LAYOUT);
 
     configure(leds);
+    unsigned int i, j;
+    CRGB col;
 
-    for (unsigned int i = 0; i < LED_LENGTH; ++i) leds[i] = CRGB::Black;
+    for (i = 0; i < 5; ++i) {
+        switch (i) {
+            case 1: col = CRGB(255, 0, 0); break;
+            case 2: col = CRGB(0, 255, 0); break;
+            case 3: col = CRGB(0, 0, 255); break;
+            default: col = CRGB::Black;
+        }
+        for (j = 0; j < LED_LENGTH; ++j) {
+            leds[j] = col;
+            if ( j % 6 == 0 ) {
+                FastLED.show();
+            }
+        }
+    }
+
     FastLED.show();
     delay(1000);
 }
