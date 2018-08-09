@@ -1,14 +1,27 @@
+const defaultShader = "precision mediump float;uniform vec3 c;void main(){gl_FragColor=vec4(c,1.);}"
+
 class Ecran {
   constructor(canvas) {
     this.sandbox = new GlslCanvas(canvas);
-    this.shader = 'run.frag';
+    this.shader = null;
     this.load();
   }
 
-  load() {
-    fetch('/shader/' + this.shader)
-      .then(r => r.text())
-      .then(r => this.sandbox.load(r));
+  load(shader) {
+    if (shader == undefined) {
+      shader = this.shader;
+    }
+
+    if (shader == null) {
+      this.sandbox.load(defaultShader);
+    } else {
+      fetch('/shader/' + shader)
+        .then(r => r.text())
+        .then(r => this.sandbox.load(r));
+    }
+
+    this.shader = shader;
+    return this.send('load', {shader});
   }
 
   status() {

@@ -40,20 +40,27 @@ def index():
 
     if action == 'nop':
         pass
+    elif action == 'load':
+        shader = data.get('shader')
+        resp['info'] = blaster.reload(shader)
+        resp['message'] = '%s loaded' % (shader or 'shader')
     elif action == 'sync':
         t = blaster.t
         if t:
             blaster.t = max(t) + 5
-            resp['message'] = '%s => %s' % (t, blaster.t)
+            resp['info'] = tuple(zip(t, blaster.t))
+            resp['message'] = 'synchronised'
     elif action == 'update':
         for k, v in data.items():
             blaster[k] = v
     elif action == 'stop':
         blaster.stop(data.get('halt', False))
+        resp['message'] = 'stopped'
     else:
         raise APIError('unrecognized action')
 
     return json.jsonify(resp)
+
 
 @app.route('/status')
 def status():
@@ -62,6 +69,7 @@ def status():
         'fps': blaster.fps,
         'uniforms': blaster.uniforms,
     })
+
 
 @app.route('/shader/<path:filename>')
 def shader(filename):

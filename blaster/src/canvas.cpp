@@ -6,7 +6,7 @@
 #define U_LOC(n) glGetUniformLocation(m_program, n)
 
 const char * vsh = "attribute vec3 p;void main(){gl_Position=vec4(p,1.);}";
-const char * fsh = "void main(){gl_FragColor=vec4(0.);}";
+const char * fsh = "uniform vec3 c;void main(){gl_FragColor=vec4(c,1.);}";
 
 Canvas::Canvas() {
 	glEnable(GL_BLEND);

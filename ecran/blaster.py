@@ -77,3 +77,10 @@ class Blaster:
 
     def stop(self, halt=False):
         tuple(self.blast('q halt' if halt else 'q'))
+
+    def reload(self, shader=None):
+        if shader is None:
+            msg = 'r'
+        else:
+            msg = 'r %s' % shader
+        return tuple(self.blast(msg))
