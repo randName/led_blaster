@@ -4,23 +4,8 @@
 	(global.GlslCanvas = factory());
 }(this, (function () { 'use strict';
 
-var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
 function createCommonjsModule(fn, module) { return module = { exports: {} }, fn(module, module.exports), module.exports; }
 
-var win;
-
-if (typeof window !== "undefined") {
-    win = window;
-} else if (typeof commonjsGlobal !== "undefined") {
-    win = commonjsGlobal;
-} else if (typeof self !== "undefined"){
-    win = self;
-} else {
-    win = {};
-}
-
-var window_1 = win;
 var isFunction_1 = isFunction;
 var toString = Object.prototype.toString;
 
@@ -132,8 +117,8 @@ function extend() {
 var xhr = createXHR;
 // Allow use of default import syntax in TypeScript
 var default_1 = createXHR;
-createXHR.XMLHttpRequest = window_1.XMLHttpRequest || noop;
-createXHR.XDomainRequest = "withCredentials" in (new createXHR.XMLHttpRequest()) ? createXHR.XMLHttpRequest : window_1.XDomainRequest;
+createXHR.XMLHttpRequest = window.XMLHttpRequest || noop;
+createXHR.XDomainRequest = "withCredentials" in (new createXHR.XMLHttpRequest()) ? createXHR.XMLHttpRequest : window.XDomainRequest;
 
 forEachArray(["get", "put", "post", "patch", "head", "delete"], function(method) {
     createXHR[method === "delete" ? "del" : method] = function(uri, options, callback) {
@@ -1389,39 +1374,11 @@ var GlslCanvas = function () {
         // Allow alpha
         canvas.style.backgroundColor = contextOptions.backgroundColor || 'rgba(1,1,1,0)';
 
-        // Load shader
-        if (canvas.hasAttribute('data-fragment')) {
-            this.fragmentString = canvas.getAttribute('data-fragment');
-        } else if (canvas.hasAttribute('data-fragment-url')) {
-            var source = canvas.getAttribute('data-fragment-url');
-            xhr.get(source, function (error, response, body) {
-                _this.load(body, _this.vertexString);
-            });
-        }
-
-        // Load shader
-        if (canvas.hasAttribute('data-vertex')) {
-            this.vertexString = canvas.getAttribute('data-vertex');
-        } else if (canvas.hasAttribute('data-vertex-url')) {
-            var _source = canvas.getAttribute('data-vertex-url');
-            xhr.get(_source, function (error, response, body) {
-                _this.load(_this.fragmentString, body);
-            });
-        }
-
         this.load();
 
         if (!this.program) {
             return;
         }
-
-        // Define Vertex buffer
-        var texCoordsLoc = gl.getAttribLocation(this.program, 'a_texcoord');
-        this.vbo.texCoords = gl.createBuffer();
-        this.gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo.texCoords);
-        this.gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]), gl.STATIC_DRAW);
-        this.gl.enableVertexAttribArray(texCoordsLoc);
-        this.gl.vertexAttribPointer(texCoordsLoc, 2, gl.FLOAT, false, 0, 0);
 
         var verticesLoc = gl.getAttribLocation(this.program, 'a_position');
         this.vbo.vertices = gl.createBuffer();
@@ -1439,21 +1396,9 @@ var GlslCanvas = function () {
         }
 
         // ========================== EVENTS
-        var mouse = {
-            x: 0,
-            y: 0
-        };
-        document.addEventListener('mousemove', function (e) {
-            mouse.x = e.clientX || e.pageX;
-            mouse.y = e.clientY || e.pageY;
-        }, false);
 
         var sandbox = this;
         function RenderLoop() {
-            if (sandbox.nMouse > 1) {
-                sandbox.setMouse(mouse);
-            }
-
             if (sandbox.resize()) {
                 sandbox.forceRender = true;
             }
@@ -1463,7 +1408,6 @@ var GlslCanvas = function () {
         }
 
         // Start
-        this.setMouse({ x: 0, y: 0 });
         RenderLoop();
         return this;
     }
@@ -1509,8 +1453,7 @@ var GlslCanvas = function () {
             this.nDelta = (this.fragmentString.match(/u_delta/g) || []).length;
             this.nTime = (this.fragmentString.match(/u_time/g) || []).length;
             this.nDate = (this.fragmentString.match(/u_date/g) || []).length;
-            this.nMouse = (this.fragmentString.match(/u_mouse/g) || []).length;
-            this.animated = this.nDate > 1 || this.nTime > 1 || this.nMouse > 1;
+            this.animated = this.nDate > 1 || this.nTime > 1;
 
             var nTextures = this.fragmentString.search(/sampler2D/g);
             if (nTextures) {
@@ -1688,22 +1631,6 @@ var GlslCanvas = function () {
             }
             this.forceRender = true;
         }
-    }, {
-        key: 'setMouse',
-        value: function setMouse(mouse) {
-            // set the mouse uniform
-            var rect = this.canvas.getBoundingClientRect();
-            if (mouse && mouse.x && mouse.x >= rect.left && mouse.x <= rect.right && mouse.y && mouse.y >= rect.top && mouse.y <= rect.bottom) {
-
-                var mouse_x = (mouse.x - rect.left) * this.realToCSSPixels;
-                var mouse_y = this.canvas.height - (mouse.y - rect.top) * this.realToCSSPixels;
-
-                this.uniform('2f', 'vec2', 'u_mouse', mouse_x, mouse_y);
-            }
-        }
-
-        // ex: program.uniform('3f', 'position', x, y, z);
-
     }, {
         key: 'uniform',
         value: function uniform(method, type, name) {

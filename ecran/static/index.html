@@ -8,14 +8,18 @@
     <script src="/static/js/libs/dat.gui.min.js"></script>
     <script src="/static/js/libs/GlslCanvas.js"></script>
     <script src="/static/js/ecran.js"></script>
-    <script src="/static/js/uniforms.js"></script>
     <style type="text/css">
     body { padding: 0; margin: 0; background: #000; }
     #ecran { width: 100vw; height: 20vw; }
+    .info { color: #EEE; padding: 10px; }
     </style>
   </head>
   <body>
     <canvas id="ecran" height="128" width="128"></canvas>
+    <div class="info">
+      <div>t: <span id="u_t"></span></div>
+      <div>FPS: <span id="fps"></span></div>
+    </div>
     <script src="/static/js/app.js"></script>
   </body>
 </html>
