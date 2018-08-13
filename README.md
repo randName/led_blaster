@@ -10,3 +10,7 @@ Stuff to interface lots of Arduinos
 `git clone https://github.com/FastLED/FastLED ~/sketchbook/libraries/FastLED`
 
 `pipenv install`
+
+## Run
+- écran server: `pipenv run server`
+- blaster: `./run_blaster.sh`
