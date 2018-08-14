@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve écran
+After=network.target
+
+[Service]
+User=pi
+Group=www-data
+WorkingDirectory=/home/pi/led_blaster
+Environment="BLASTER_SETTINGS=config.py"
+ExecStart=/usr/bin/gunicorn --workers 3 --bind unix:ecran.sock -m 000 ecran:app
+
+[Install]
+WantedBy=multi-user.target
