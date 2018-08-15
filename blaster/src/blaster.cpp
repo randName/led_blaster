@@ -48,17 +48,10 @@ bool Blaster::load(const int b) {
 		return false;
 	}
 
-	m_id[b] = m_ard[b].get();
 	layout = m_ard[b].get();
-
-	if ( m_id[b] != layout ) {
-		m_id[b] = 0xFF;
-		return false;
-	}
 
 	sprintf(filename, "layouts/%02X/layout.txt", layout);
 	inf.open(filename);
-
 	while ( inf >> x >> y ) {
 		pos = x + y * m_height;
 		if ( pos >= m_size ) {
@@ -66,8 +59,14 @@ bool Blaster::load(const int b) {
 		}
 		m_index[b].push_back(pos * 3);
 	}
-
 	inf.close();
+
+	union { unsigned char c[2]; size_t s; } led_length;
+	led_length.s = m_index[b].size();
+	m_ard[b].send(led_length.c, 2);
+
+	m_id[b] = layout;
+
 	return true;
 }
 

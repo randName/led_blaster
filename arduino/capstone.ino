@@ -1,14 +1,14 @@
 #include "FastLED.h"
-#include "layout.h"
 
 #define SERIAL_BAUD 1000000
 #define BOARD_READY 0xFF
 #define NUM_LEDS 512
+#define LED_PIN 4
 
 const byte id_pins[] = { 12, 11, 10, 9, 8 };
 
 CRGB leds[NUM_LEDS];
-const int ll = LED_LENGTH * 3;
+int ll;
 
 byte get_board_no() {
     byte i, s = 0;
@@ -22,9 +22,14 @@ byte get_board_no() {
 void setup() {
     Serial.begin(SERIAL_BAUD);
     Serial.write(get_board_no());
-    Serial.write(BOARD_LAYOUT);
 
-    configure(leds);
+    union { char b[2]; unsigned int i; } data;
+
+    while ( Serial.available() < 2 );
+    Serial.readBytes(data.b, 2);
+    ll = data.i * 3;
+
+    FastLED.addLeds<UCS1903B, LED_PIN>(leds, data.i);
     unsigned int i, j;
     CRGB col;
 
@@ -35,7 +40,7 @@ void setup() {
             case 3: col = CRGB(0, 0, 255); break;
             default: col = CRGB::Black;
         }
-        for (j = 0; j < LED_LENGTH; ++j) {
+        for (j = 0; j < data.i; ++j) {
             leds[j] = col;
             if ( j % 6 == 0 ) {
                 FastLED.show();
