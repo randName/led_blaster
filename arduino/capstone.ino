@@ -45,9 +45,9 @@ void setup() {
 
     for (i = 0; i < 5; ++i) {
         switch (i) {
-            case 1: col = CRGB(255, 0, 0); break;
-            case 2: col = CRGB(0, 255, 0); break;
-            case 3: col = CRGB(0, 0, 255); break;
+            case 1: col = CRGB(100, 0, 0); break;
+            case 2: col = CRGB(0, 100, 0); break;
+            case 3: col = CRGB(0, 0, 100); break;
             default: col = CRGB::Black;
         }
         for (j = 0; j < NUM_LEDS; ++j) {
@@ -81,7 +81,7 @@ void loop()
         }
     }
 
-    if ( ll == 0 || i > ACTIVE_WAIT ) {
+    if ( ll == 0 || i >= ACTIVE_WAIT ) {
         fadeToBlackBy(leds, NUM_LEDS, 10);
         int pos = random16(NUM_LEDS);
         leds[pos] += CHSV(gHue + random8(64), 200, 255);
