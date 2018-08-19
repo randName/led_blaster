@@ -61,6 +61,10 @@ bool Blaster::load(const int b) {
 	}
 	inf.close();
 
+	if ( ! m_index[b].size() ) {
+		return false;
+	}
+
 	union { unsigned char c[2]; size_t s; } led_length;
 	led_length.s = m_index[b].size();
 	m_ard[b].send(led_length.c, 2);

@@ -2,6 +2,8 @@
 
 #define SERIAL_BAUD 1000000
 #define BOARD_READY 0xFF
+#define ACTIVE_WAIT 8192
+#define IDLE_WAIT 20
 #define NUM_LEDS 512
 #define LED_PIN 4
 
@@ -23,15 +25,23 @@ void setup() {
     Serial.begin(SERIAL_BAUD);
     Serial.write(get_board_no());
 
+    FastLED.addLeds<UCS1903B, LED_PIN>(leds, NUM_LEDS);
     union { char b[2]; unsigned int i; } data;
-
-    while ( Serial.available() < 2 );
-    Serial.readBytes(data.b, 2);
-    ll = data.i * 3;
-
-    FastLED.addLeds<UCS1903B, LED_PIN>(leds, data.i);
     unsigned int i, j;
     CRGB col;
+
+    i = 0;
+    while ( Serial.available() < 2 && i < IDLE_WAIT ) {
+        ++i;
+        delay(1);
+    }
+
+    if ( i < IDLE_WAIT ) {
+        Serial.readBytes(data.b, 2);
+        ll = data.i * 3;
+    } else {
+        ll = 0;
+    }
 
     for (i = 0; i < 5; ++i) {
         switch (i) {
@@ -40,7 +50,7 @@ void setup() {
             case 3: col = CRGB(0, 0, 255); break;
             default: col = CRGB::Black;
         }
-        for (j = 0; j < data.i; ++j) {
+        for (j = 0; j < NUM_LEDS; ++j) {
             leds[j] = col;
             if ( j % 6 == 0 ) {
                 FastLED.show();
@@ -54,15 +64,30 @@ void setup() {
 
 void loop()
 {
+    static int i;
     static int rb;
+    static uint8_t gHue = 0;
 
     Serial.write(BOARD_READY);
 
     rb = 0;
-    while (!Serial.available());
-    while (rb < ll) {
-        rb += Serial.readBytes(((char*)leds) + rb, ll - rb);
+    if ( ll > 0 ) {
+        i = 0;
+        while ( rb < ll && i < ACTIVE_WAIT ) {
+            if ( Serial.available() ) {
+                rb += Serial.readBytes((char*)leds + rb, ll - rb);
+            }
+            ++i;
+        }
+    }
+
+    if ( ll == 0 || i > ACTIVE_WAIT ) {
+        fadeToBlackBy(leds, NUM_LEDS, 10);
+        int pos = random16(NUM_LEDS);
+        leds[pos] += CHSV(gHue + random8(64), 200, 255);
     }
 
     FastLED.show();
+
+    EVERY_N_MILLISECONDS( 20 ) { ++gHue; }
 }
