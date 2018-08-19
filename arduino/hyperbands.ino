@@ -2,7 +2,7 @@
 
 #define SERIAL_BAUD 1000000
 #define BOARD_READY 0xFF
-#define ACTIVE_WAIT 8192
+#define ACTIVE_WAIT 65536
 #define IDLE_WAIT 20
 #define NUM_LEDS 512
 #define LED_PIN 4
@@ -71,14 +71,12 @@ void loop()
     Serial.write(BOARD_READY);
 
     rb = 0;
-    if ( ll > 0 ) {
-        i = 0;
-        while ( rb < ll && i < ACTIVE_WAIT ) {
-            if ( Serial.available() ) {
-                rb += Serial.readBytes((char*)leds + rb, ll - rb);
-            }
-            ++i;
+    i = 0;
+    while ( rb < ll && i < ACTIVE_WAIT ) {
+        if ( Serial.available() ) {
+            rb += Serial.readBytes((char*)leds + rb, ll - rb);
         }
+        ++i;
     }
 
     if ( ll == 0 || i >= ACTIVE_WAIT ) {
