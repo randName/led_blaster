@@ -15,7 +15,7 @@ class Ecran {
     if (shader == null) {
       this.sandbox.load(defaultShader);
     } else {
-      fetch('/shader/' + shader)
+      fetch('shader/' + shader)
         .then(r => r.text())
         .then(r => this.sandbox.load(r));
     }
