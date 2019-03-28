@@ -1,0 +1,10 @@
+.env
+
+__pycache__/
+*.pyc
+
+build-*/
+layouts/output/
+
+*.o
+build/
